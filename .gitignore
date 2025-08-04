@@ -1,0 +1,49 @@
+# Laravel
+/vendor
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/storage/app/public
+/storage/debugbar
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/.env
+/.env.backup
+/.phpunit.result.cache
+
+# Laravel Mix / Vite
+/public/mix-manifest.json
+/public/build
+/build
+
+# IDE / Editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# NPM/Yarn/PNPM logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Composer
+composer.lock
+
+# Inertia
+inertiajs
+
+# Optional: Jetstream specific (only if publishing views or config)
+# /resources/views/vendor
+# /config/jetstream.php
+
+# Optional: Laravel Telescope (if using)
+/.telescope
