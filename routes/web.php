@@ -47,7 +47,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('albums', AlbumController::class)->names('albums');
 
-    //Route::resource('/items', ItemController::class);
 });
 
 
@@ -55,8 +54,7 @@ Route::get('/items', function () {
     return Inertia::render('Items');
 })->name('items');
 
-// Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-//      ->name('logout');
+
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -64,5 +62,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Profile');
     })->name('profile');
 });
+
+
+
 
 
