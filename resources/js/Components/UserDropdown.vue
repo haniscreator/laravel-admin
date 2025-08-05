@@ -13,12 +13,12 @@
         {{ userName }}
       </span>
       <ChevronDownIcon
-            :class="[
-            'h-4 w-4 transition-transform duration-200',
-            showDropdown ? 'rotate-180' : 'rotate-0',
-            'text-gray-500 dark:text-gray-300'
-            ]"
-        />
+        :class="[
+          'h-4 w-4 transition-transform duration-200',
+          showDropdown ? 'rotate-180' : 'rotate-0',
+          'text-gray-500 dark:text-gray-300'
+        ]"
+      />
     </div>
 
     <transition
@@ -41,26 +41,22 @@
           Profile
         </Link>
 
-        <form method="POST" action="/logout">
-          <input type="hidden" name="_token" :value="csrfToken" />
-          <button
-            type="submit"
-            class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <ArrowLeftOnRectangleIcon class="h-4 w-4" />
-            Logout
-          </button>
-        </form>
+        <button
+          @click="logout"
+          class="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <ArrowLeftOnRectangleIcon class="h-4 w-4" />
+          Logout
+        </button>
       </div>
     </transition>
   </div>
 </template>
 
-
-
 <script setup>
 import { ref, computed } from 'vue'
 import { usePage, Link } from '@inertiajs/inertia-vue3'
+import { Inertia } from '@inertiajs/inertia' // ✅ ADD THIS LINE
 import { onClickOutside } from '@vueuse/core'
 import { ChevronDownIcon, UserIcon, ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/solid'
 
@@ -78,5 +74,10 @@ const toggleDropdown = () => {
 const page = usePage()
 const user = computed(() => page.props.value?.auth?.user)
 const userName = computed(() => user.value?.name ?? 'User')
-const csrfToken = computed(() => page.props.value?.csrf_token ?? '')
+
+// ✅ CSRF is not needed for Inertia POST
+const logout = () => {
+  Inertia.post(route('logout'))
+}
 </script>
+

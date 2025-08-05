@@ -10,7 +10,7 @@ A responsive admin dashboard built using Laravel with Jetstream, Vue 3, Inertia.
 - ✅ Sidebar with grouped menu and icons
 - ✅ Header with User Dropdown (Profile + Logout)
 - ✅ Dark/Light mode toggle
-- ✅ Layout via `AuthenticatedLayout.vue`
+- ✅ Layout via `MainLayout.vue`
 
 ---
 
@@ -65,8 +65,9 @@ You can use Spatie's seeder structure or create your own.
 php artisan serve
 ```
 
+---
 
-✨ Credits
+## ✨ Credits
 - Laravel
 - Jetstream
 - Inertia.js

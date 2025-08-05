@@ -23,13 +23,14 @@
     </Link>
 
     <Link
-        href="/albums"
+        :href="route('albums.index')"
         class="flex items-center gap-3 px-3 py-2 rounded transition-all"
-        :class="route().current('albums') ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-gray-700'"
+        :class="$page.url.startsWith('/albums') ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-gray-700'"
     >
         <i class="fas fa-images"></i>
         <span>Albums</span>
     </Link>
+
 
     <Link
         href="/items"

@@ -45,7 +45,8 @@ Route::middleware(['auth', 'role:Editor'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    Route::resource('/albums', AlbumController::class);
+    Route::resource('albums', AlbumController::class)->names('albums');
+
     //Route::resource('/items', ItemController::class);
 });
 
@@ -54,12 +55,14 @@ Route::get('/items', function () {
     return Inertia::render('Items');
 })->name('items');
 
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-     ->name('logout');
+// Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+//      ->name('logout');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', function () {
         return Inertia::render('Profile');
     })->name('profile');
-});     
+});
+
+

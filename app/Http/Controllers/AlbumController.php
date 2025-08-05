@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Album;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 
 class AlbumController extends Controller
@@ -32,7 +33,11 @@ class AlbumController extends Controller
         }
 
         $albums = $query->paginate(10);
-        return view('albums.index', compact('albums'));
+
+        return Inertia::render('Albums/Index', [  // <-- Note the Inertia render and Vue page path
+            'albums' => $albums,
+            'filters' => $request->only(['keyword']),
+        ]);
     }
 
     /**
