@@ -96,7 +96,7 @@
             <td class="py-2 px-4 border">{{ album.description.length > 100 ? album.description.slice(0, 100) + '...' : album.description }}</td>
             <td class="py-2 px-4 border">{{ album.location }}</td>
             <td class="py-2 px-4 border">{{ album.keyword }}</td>
-            <td class="py-2 px-4 border">
+            <!-- <td class="py-2 px-4 border">
               <span
                 :class="[
                   'px-2 py-1 rounded-full text-sm font-semibold',
@@ -107,7 +107,28 @@
               >
                 {{ album.status === 1 ? 'Active' : 'In-Active' }}
               </span>
+            </td> -->
+
+            <td class="py-2 px-4 border text-center">
+              <input
+                type="checkbox"
+                :checked="album.status === 1"
+                @change="toggleStatus(album.id, $event.target.checked)"
+                class="toggle-checkbox hidden"
+                :id="'toggle-' + album.id"
+              />
+              <label
+                :for="'toggle-' + album.id"
+                class="toggle-label block w-14 h-8 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer relative"
+              >
+                <span
+                  class="dot absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition"
+                  :class="{ 'translate-x-6': album.status === 1 }"
+                ></span>
+              </label>
             </td>
+
+
             <td class="px-4 py-2 border text-center">
               <button
                 @click="editAlbum(album.id)"
@@ -163,6 +184,7 @@
   import { ref, watch, computed, reactive } from 'vue'
   import { Inertia } from '@inertiajs/inertia'
   import { usePage } from '@inertiajs/inertia-vue3'
+  
 
   const props = usePage().props.value
   const filters = ref(props.filters || { keyword: '' })
@@ -238,6 +260,13 @@
     Inertia.get('/albums/create')
   }
 
+  function toggleStatus(albumId) {
+    Inertia.put(`/albums/${albumId}/toggle-status`, {}, {
+      preserveScroll: true,
+      preserveState: true,
+    })
+  }
+
   watch(() => usePage().props.value.albums, (newVal) => {
     albums.value = newVal
   })
@@ -251,3 +280,18 @@
     layout: MainLayout,
   }
 </script>
+
+
+<style scoped>
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #10b981; /* green */
+}
+
+.toggle-label .dot {
+  transition: transform 0.3s ease;
+}
+
+.translate-x-6 {
+  transform: translateX(1.5rem); /* move dot right */
+}
+</style>

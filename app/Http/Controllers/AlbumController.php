@@ -183,4 +183,13 @@ class AlbumController extends Controller
         return redirect()->route('albums.index')->with('success', 'Album deleted successfully.');
     }
 
+    public function toggleStatus(Request $request, Album $album)
+    {
+        $album->status = !$album->status; // toggle between 0 and 1
+        $album->save();
+
+        return redirect()->back()->with('success', 'Status updated');
+    }
+
+
 }

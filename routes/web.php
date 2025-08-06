@@ -63,6 +63,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('profile');
 });
 
+Route::put('/albums/{album}/toggle-status', [AlbumController::class, 'toggleStatus']);
+
+
 
 
 
