@@ -12,6 +12,7 @@
           class="w-full border rounded px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
         />
         <div v-if="form.errors.name" class="text-red-500">{{ form.errors.name }}</div>
+       
       </div>
 
       <div class="mb-4">

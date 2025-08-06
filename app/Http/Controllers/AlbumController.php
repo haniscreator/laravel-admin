@@ -17,17 +17,30 @@ class AlbumController extends Controller
     {
         $query = Album::query();
 
+        // Handle search
         if ($request->filled('keyword')) {
-            $query->where('name', 'like', '%' . $request->keyword . '%')
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->keyword . '%')
                 ->orWhere('description', 'like', '%' . $request->keyword . '%')
                 ->orWhere('location', 'like', '%' . $request->keyword . '%');
+            });
         }
 
-        $albums = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-        
+        // Handle sorting
+        $sort = $request->input('sort', 'id');
+        $direction = $request->input('direction', 'asc');
+
+        if (in_array($sort, ['id', 'name', 'description', 'location']) &&
+            in_array($direction, ['asc', 'desc'])) {
+            $query->orderBy($sort, $direction);
+        }
+
+        // Paginate and preserve all filters
+        $albums = $query->paginate(10)->appends($request->only('keyword', 'sort', 'direction'));
+
         return Inertia::render('Albums/Index', [
             'albums' => $albums,
-            'filters' => $request->only('keyword'),
+            'filters' => $request->only('keyword', 'sort', 'direction'),
         ]);
     }
 

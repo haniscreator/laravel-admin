@@ -1,42 +1,90 @@
 <template>
   <div>
     <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold">Albums</h1>
+    <h1 class="text-2xl font-bold dark:text-gray-200">Albums</h1>
     <div v-if="$page.props.flash.success" class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 p-3 rounded mb-4">
         {{ $page.props.flash.success }}
     </div>
 
     <div class="flex items-center space-x-2">
-        <input
-        v-model="filters.keyword"
-        @input="search"
-        type="text"
-        placeholder="Search albums..."
-        class="border px-3 py-2 rounded w-64"
-    />
+  <input
+    v-model="filters.keyword"
+    @input="search"
+    type="text"
+    placeholder="Search albums..."
+    class="border px-3 py-2 rounded w-64"
+  />
 
-    <button
-      @click="goToCreateForm"
-      class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
-    >
-      + Add New
-    </button>
-  </div>
+  <!-- Reset Button -->
+  <button
+    @click="resetSearch"
+    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+  >
+    
+    Reset
+  </button>
+
+  <button
+    @click="goToCreateForm"
+    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+  >
+    + Add New
+  </button>
+</div>
+
 </div>
 
 
     <div class="overflow-x-auto">
       <table class="min-w-full bg-white border border-gray-200">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="text-left py-2 px-4 border-b">ID</th>
-            <th class="text-left py-2 px-4 border-b">Name</th>
-            <th class="text-left py-2 px-4 border-b">Description</th>
-            <th class="text-left py-2 px-4 border-b">Location</th>
-            <th class="text-left py-2 px-4 border-b">Status</th>
-            <th class="text-left py-2 px-4 border-b">Action</th>
-          </tr>
-        </thead>
+        <!-- Add this inside your table <thead> -->
+
+    <thead>
+      <tr>
+        <th @click="sortBy('id')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+          ID
+          <span class="ml-1">
+            <span v-if="sort.field === 'id'">
+              {{ sort.direction === 'asc' ? '▲' : '▼' }}
+            </span>
+            <span v-else class="text-gray-400">▲▼</span>
+          </span>
+        </th>
+        <th @click="sortBy('name')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+          Name
+          <span class="ml-1">
+            <span v-if="sort.field === 'name'">
+              {{ sort.direction === 'asc' ? '▲' : '▼' }}
+            </span>
+            <span v-else class="text-gray-400">▲▼</span>
+          </span>
+        </th>
+        <th @click="sortBy('description')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+          Description
+          <span class="ml-1">
+            <span v-if="sort.field === 'description'">
+              {{ sort.direction === 'asc' ? '▲' : '▼' }}
+            </span>
+            <span v-else class="text-gray-400">▲▼</span>
+          </span>
+        </th>
+        <th @click="sortBy('location')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+          Location
+          <span class="ml-1">
+            <span v-if="sort.field === 'location'">
+              {{ sort.direction === 'asc' ? '▲' : '▼' }}
+            </span>
+            <span v-else class="text-gray-400">▲▼</span>
+          </span>
+        </th>
+        <th class="text-left py-2 px-4 border-b">Keywords</th>
+        <th class="text-left py-2 px-4 border-b">Status</th>
+        <th class="px-4 py-2">Actions</th>
+      </tr>
+    </thead>
+
+
+
         <tbody>
           <tr
             v-for="album in albums.data"
@@ -47,6 +95,7 @@
             <td class="py-2 px-4 border">{{ album.name }}</td>
             <td class="py-2 px-4 border">{{ album.description }}</td>
             <td class="py-2 px-4 border">{{ album.location }}</td>
+            <td class="py-2 px-4 border">{{ album.keyword }}</td>
             <td class="py-2 px-4 border">
               <span
                 :class="[
@@ -111,47 +160,94 @@
 
 <script setup>
 
-import { ref, watch } from 'vue'
-import { Inertia } from '@inertiajs/inertia'
-import { usePage } from '@inertiajs/inertia-vue3'
-import { computed } from 'vue'
-const albums = computed(() => usePage().props.value.albums)
+  import { ref, watch, computed, reactive } from 'vue'
+  import { Inertia } from '@inertiajs/inertia'
+  import { usePage } from '@inertiajs/inertia-vue3'
 
-const props = usePage().props.value
-const filters = ref(props.filters || { keyword: '' })
+  const props = usePage().props.value
+  const filters = ref(props.filters || { keyword: '' })
+  const page = usePage()
+  const albums = computed(() => usePage().props.value.albums)
 
-function search() {
-  Inertia.get('/albums', { keyword: filters.value.keyword }, { preserveState: true, replace: true })
-}
+  const sort = reactive({
+    field: page.props.filters?.sort || '',
+    direction: page.props.filters?.direction || 'asc',
+  })
 
-function goToPage(page) {
+  function sortBy(field) {
+    if (sort.field === field) {
+      sort.direction = sort.direction === 'asc' ? 'desc' : 'asc'
+    } else {
+      sort.field = field
+      sort.direction = 'asc'
+    }
 
-  Inertia.get('/albums', { page, keyword: filters.value.keyword }, { preserveState: true, replace: true })
-}
-
-function editAlbum(id) {
-    Inertia.get(`/albums/${id}/edit`)
-}
-
-function deleteAlbum(id) {
-  if (confirm('Are you sure you want to delete this album?')) {
-    Inertia.delete(`/albums/${id}`)
+    Inertia.get('/albums', {
+      keyword: filters.value.keyword, // ✅ include the search keyword
+      sort: sort.field,
+      direction: sort.direction,
+      page: albums.value.current_page,
+    }, {
+      preserveState: true,
+      preserveScroll: true,
+    })
   }
-}
 
-function goToCreateForm() {
-  Inertia.get('/albums/create')
-}
 
-watch(() => usePage().props.value.albums, (newVal) => {
-  albums.value = newVal
-})
+  function goToPage(page) {
+    Inertia.get('/albums', {
+      page,
+      sort: sort.field,
+      direction: sort.direction,
+    }, {
+      preserveState: true,
+      preserveScroll: true,
+    })
+  }
+
+
+  function search() {
+    Inertia.get('/albums', {
+      keyword: filters.value.keyword,
+      sort: sort.field,
+      direction: sort.direction,
+    }, {
+      preserveState: true,
+      replace: true,
+    })
+  }
+
+  function resetSearch() {
+    filters.value.keyword = ''
+    search()
+  }
+
+
+
+  function editAlbum(id) {
+      Inertia.get(`/albums/${id}/edit`)
+  }
+
+  function deleteAlbum(id) {
+    if (confirm('Are you sure you want to delete this album?')) {
+      Inertia.delete(`/albums/${id}`)
+    }
+  }
+
+  function goToCreateForm() {
+    Inertia.get('/albums/create')
+  }
+
+  watch(() => usePage().props.value.albums, (newVal) => {
+    albums.value = newVal
+  })
 </script>
 
-<script>
-import MainLayout from '@/Layouts/MainLayout.vue'
 
-export default {
-  layout: MainLayout,
-}
+<script>
+  import MainLayout from '@/Layouts/MainLayout.vue'
+
+  export default {
+    layout: MainLayout,
+  }
 </script>
