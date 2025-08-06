@@ -93,7 +93,7 @@
           >
             <td class="py-2 px-4 border">{{ album.id }}</td>
             <td class="py-2 px-4 border">{{ album.name }}</td>
-            <td class="py-2 px-4 border">{{ album.description }}</td>
+            <td class="py-2 px-4 border">{{ album.description.length > 100 ? album.description.slice(0, 100) + '...' : album.description }}</td>
             <td class="py-2 px-4 border">{{ album.location }}</td>
             <td class="py-2 px-4 border">{{ album.keyword }}</td>
             <td class="py-2 px-4 border">
@@ -183,7 +183,7 @@
     }
 
     Inertia.get('/albums', {
-      keyword: filters.value.keyword, // ✅ include the search keyword
+      keyword: filters.value.keyword,
       sort: sort.field,
       direction: sort.direction,
       page: albums.value.current_page,

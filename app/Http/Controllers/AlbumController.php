@@ -6,6 +6,8 @@ use App\Models\Album;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Image;
+use Illuminate\Support\Facades\Storage;
 
 
 class AlbumController extends Controller
@@ -65,9 +67,24 @@ class AlbumController extends Controller
             'location' => 'required|string',
             'keyword' => 'required|string',
             'status' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        Album::create($validated);
+        $createdAlbum = Album::create($validated);
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs('images/upload', $filename, 'public');
+
+            Image::create([
+                'parent_id' => $createdAlbum->id, // reference to album ID
+                'path' => $path,           // path to uploaded image
+                'type' => 'album',         // categorization
+                'created_by' => auth()->id(), // current authenticated user
+            ]);
+        }
+
 
         return redirect()->route('albums.index')->with('success', 'Album created successfully.');
 
@@ -86,8 +103,18 @@ class AlbumController extends Controller
      */
     public function edit(Album $album)
     {
+        // return Inertia::render('Albums/Edit', [
+        //     'album' => $album,
+        // ]);
+
+        // Load related image (if exists)
+        $image = Image::where('parent_id', $album->id)
+            ->where('type', 'album')
+            ->first();
+
         return Inertia::render('Albums/Edit', [
             'album' => $album,
+            'image' => $image, // add this line
         ]);
     }
 
@@ -102,9 +129,45 @@ class AlbumController extends Controller
             'location' => 'required|string',
             'keyword' => 'required|string',
             'status' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $album->update($validated);
+        
+
+        if ($request->hasFile('image')) {
+
+            // Get existing images for this album
+            $oldImages = Image::where('parent_id', $album->id)
+                ->where('type', 'album')
+                ->get();
+
+            // Delete physical files
+            foreach ($oldImages as $oldImage) {
+                if (Storage::disk('public')->exists($oldImage->path)) {
+                    Storage::disk('public')->delete($oldImage->path);
+                }
+            }
+
+            // Delete existing images for this album
+            Image::where('parent_id', $album->id)
+                ->where('type', 'album')
+                ->delete();
+
+            // Upload and store new image
+            $image = $request->file('image');
+            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs('images/upload', $filename, 'public');
+
+            // Create new image record
+            Image::create([
+                'parent_id' => $album->id,
+                'path' => $path,
+                'type' => 'album',
+                'created_by' => auth()->id(),
+            ]);
+        }
+
 
         return redirect()->route('albums.index')->with('success', 'Album updated successfully.');
     }

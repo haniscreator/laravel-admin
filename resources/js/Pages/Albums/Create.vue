@@ -51,6 +51,44 @@
         <label for="status" class="font-medium text-gray-800 dark:text-gray-200">Active</label>
       </div>
 
+      <!-- <div class="mb-4">
+        <label class="block font-medium text-gray-800 dark:text-gray-200">Image</label>
+        <input
+          type="file"
+          @change="handleFileUpload"
+          accept=".jpg,.jpeg,.png"
+          class="w-full border rounded px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+        />
+        <div v-if="form.errors.image" class="text-red-500">{{ form.errors.image }}</div>
+      </div> -->
+
+      <div class="mb-4">
+  <label class="block font-medium text-gray-800 dark:text-gray-200 mb-1">Image</label>
+  <div class="flex items-center gap-3">
+    <label
+      class="inline-flex items-center gap-2 cursor-pointer 
+            px-4 py-2 rounded text-sm font-semibold 
+            bg-gray-700 text-white hover:bg-gray-900
+            dark:bg-gray-700 dark:hover:bg-gray-900"
+    >
+      <i class="fas fa-upload"></i> <!-- Font Awesome icon -->
+      Upload Image
+      <input
+        type="file"
+        @change="handleFileUpload"
+        accept=".jpg,.jpeg,.png"
+        class="hidden"
+      />
+    </label>
+
+    <span class="text-sm text-gray-700 dark:text-gray-300" v-if="selectedImageName">
+      {{ selectedImageName }}
+    </span>
+  </div>
+  <div v-if="form.errors.image" class="text-red-500 mt-1">{{ form.errors.image }}</div>
+</div>
+
+
 
       <div class="flex space-x-2">
         <button
@@ -69,6 +107,10 @@
 import MainLayout from '@/Layouts/MainLayout.vue'
 import { useForm } from '@inertiajs/inertia-vue3'
 import { Inertia } from '@inertiajs/inertia'
+import { ref } from 'vue'
+
+const selectedImageName = ref('')
+const newImage = ref(null)
 
 const form = useForm({
   name: '',
@@ -76,10 +118,46 @@ const form = useForm({
   location: '',
   keyword: '',
   status: false,
+  image: null,
 })
 
+function handleFileUpload(event) {
+  //form.image = e.target.files[0]
+  const file = event.target.files[0]
+  if (file) {
+    newImage.value = file
+    selectedImageName.value = file.name
+    form.image = file // attach image to form
+  } else {
+    selectedImageName.value = ''
+    form.image = null
+  }
+}
+
 function submit() {
-  form.post('/albums')
+  // form.post('/albums', {
+  //   forceFormData: true, // IMPORTANT: use multipart/form-data
+  //   onSuccess: () => {
+  //     // reset form if needed
+  //   },
+  // })
+
+  const formData = new FormData()
+  formData.append('name', form.name)
+  formData.append('description', form.description)
+  formData.append('location', form.location)
+  formData.append('keyword', form.keyword)
+  formData.append('status', form.status ? 1 : 0)
+
+  if (form.image) {
+    formData.append('image', form.image)
+  }
+
+  form.post('/albums', {
+    preserveScroll: true,
+    forceFormData: true,
+    data: formData,
+  })
 }
 
 function goBack() {
