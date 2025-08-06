@@ -21,6 +21,7 @@
           v-model="form.description"
           class="w-full border rounded px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
         ></textarea>
+        <div v-if="form.errors.description" class="text-red-500">{{ form.errors.description }}</div>
       </div>
 
       <div class="mb-4">
@@ -30,6 +31,8 @@
           type="text"
           class="w-full border rounded px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
         />
+        <div v-if="form.errors.location" class="text-red-500">{{ form.errors.location }}</div>
+
       </div>
 
       <div class="mb-4">
@@ -39,12 +42,15 @@
           type="text"
           class="w-full border rounded px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
         />
+        <div v-if="form.errors.keyword" class="text-red-500">{{ form.errors.keyword }}</div>
+
       </div>
 
       <div class="mb-4 flex items-center">
         <input v-model="form.status" type="checkbox" id="status" class="mr-2" />
         <label for="status" class="font-medium text-gray-800 dark:text-gray-200">Active</label>
       </div>
+
 
       <div class="flex space-x-2">
         <button

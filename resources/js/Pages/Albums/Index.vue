@@ -170,8 +170,8 @@
   const albums = computed(() => usePage().props.value.albums)
 
   const sort = reactive({
-    field: page.props.filters?.sort || '',
-    direction: page.props.filters?.direction || 'asc',
+    field: page.props.filters?.sort || 'id',
+    direction: page.props.filters?.direction || 'desc',
   })
 
   function sortBy(field) {

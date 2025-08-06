@@ -48,6 +48,8 @@ function goBack() {
             v-model="form.description"
             class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:text-white"
           ></textarea>
+          <div v-if="form.errors.description" class="text-red-500">{{ form.errors.description }}</div>
+
         </div>
 
         <div>
@@ -57,6 +59,8 @@ function goBack() {
             type="text"
             class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:text-white"
           />
+          <div v-if="form.errors.location" class="text-red-500">{{ form.errors.location }}</div>
+
         </div>
 
         <div>
@@ -66,6 +70,8 @@ function goBack() {
             type="text"
             class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:text-white"
           />
+           <div v-if="form.errors.keyword" class="text-red-500">{{ form.errors.keyword }}</div>
+
         </div>
 
         <div>

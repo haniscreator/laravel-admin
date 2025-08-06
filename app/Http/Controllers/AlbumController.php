@@ -28,7 +28,7 @@ class AlbumController extends Controller
 
         // Handle sorting
         $sort = $request->input('sort', 'id');
-        $direction = $request->input('direction', 'asc');
+        $direction = $request->input('direction', 'desc');
 
         if (in_array($sort, ['id', 'name', 'description', 'location']) &&
             in_array($direction, ['asc', 'desc'])) {
@@ -61,9 +61,9 @@ class AlbumController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'location' => 'nullable|string',
-            'keyword' => 'nullable|string',
+            'description' => 'required|string',
+            'location' => 'required|string',
+            'keyword' => 'required|string',
             'status' => 'boolean',
         ]);
 
@@ -98,9 +98,9 @@ class AlbumController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'location' => 'nullable|string',
-            'keyword' => 'nullable|string',
+            'description' => 'required|string',
+            'location' => 'required|string',
+            'keyword' => 'required|string',
             'status' => 'boolean',
         ]);
 
