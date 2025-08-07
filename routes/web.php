@@ -45,8 +45,19 @@ Route::middleware([
     // Albums - Full resource routes
     Route::resource('albums', AlbumController::class)->names('albums');
 
+    Route::resource('items', ItemController::class)->names('items');
+
+
+
     // Toggle status via PUT
     Route::put('/albums/{album}/toggle-status', [AlbumController::class, 'toggleStatus']);
+
+    Route::put('/items/{item}/toggle-status', [ItemController::class, 'toggleStatus'])->name('items.toggle-status');
+
+
+    // Route::middleware(['auth', 'verified'])->group(function () {
+    //     Route::resource('items', ItemController::class)->names('items');
+    // });
 
     // Additional role-based access (Editor role)
     // Route::middleware('role:Editor')->group(function () {

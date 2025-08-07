@@ -51,16 +51,6 @@
         <label for="status" class="font-medium text-gray-800 dark:text-gray-200">Active</label>
       </div>
 
-      <!-- <div class="mb-4">
-        <label class="block font-medium text-gray-800 dark:text-gray-200">Image</label>
-        <input
-          type="file"
-          @change="handleFileUpload"
-          accept=".jpg,.jpeg,.png"
-          class="w-full border rounded px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-        />
-        <div v-if="form.errors.image" class="text-red-500">{{ form.errors.image }}</div>
-      </div> -->
 
       <div class="mb-4">
   <label class="block font-medium text-gray-800 dark:text-gray-200 mb-1">Image</label>
@@ -135,12 +125,7 @@ function handleFileUpload(event) {
 }
 
 function submit() {
-  // form.post('/albums', {
-  //   forceFormData: true, // IMPORTANT: use multipart/form-data
-  //   onSuccess: () => {
-  //     // reset form if needed
-  //   },
-  // })
+
 
   const formData = new FormData()
   formData.append('name', form.name)

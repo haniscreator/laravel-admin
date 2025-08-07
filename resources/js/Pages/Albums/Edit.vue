@@ -143,19 +143,9 @@ function goBack() {
     </label>
 
 
-<span class="text-sm text-gray-700 dark:text-gray-300" v-if="selectedImageName">
-   {{ selectedImageName }}
+  <span class="text-sm text-gray-700 dark:text-gray-300" v-if="selectedImageName">
+    {{ selectedImageName }}
   </span>
-
-    <!-- <input type="file" @change="handleFileChange" accept="image/*" class="block w-full text-sm text-gray-900 dark:text-gray-200 
-         file:mr-4 file:py-2 file:px-4
-         file:rounded file:border-0
-         file:text-sm file:font-semibold
-         file:bg-gray-700 file:text-white
-         hover:file:bg-gray-900" /> -->
-
-    <!-- <button @click="updateAlbum" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Update Image</button> -->
-  
 
         <div class="flex space-x-2">
           <button
