@@ -24,7 +24,8 @@ class AlbumController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->keyword . '%')
                 ->orWhere('description', 'like', '%' . $request->keyword . '%')
-                ->orWhere('location', 'like', '%' . $request->keyword . '%');
+                ->orWhere('location', 'like', '%' . $request->keyword . '%')
+                ->orWhere('keyword', 'like', '%' . $request->keyword . '%');
             });
         }
 
@@ -67,8 +68,19 @@ class AlbumController extends Controller
             'location' => 'required|string',
             'keyword' => 'required|string',
             'status' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+        if (!empty($validated['keyword'])) {
+            // Split by comma and/or space
+            $parts = preg_split('/[\s,]+/', $validated['keyword'], -1, PREG_SPLIT_NO_EMPTY);
+
+            // Remove duplicates and trim
+            $tags = array_unique(array_map('trim', $parts));
+
+            // Join into a comma-separated string
+            $validated['keyword'] = implode(', ', $tags);
+        }
+
 
         $createdAlbum = Album::create($validated);
 
@@ -78,10 +90,10 @@ class AlbumController extends Controller
             $path = $image->storeAs('images/upload', $filename, 'public');
 
             Image::create([
-                'parent_id' => $createdAlbum->id, // reference to album ID
-                'path' => $path,           // path to uploaded image
-                'type' => 'album',         // categorization
-                'created_by' => auth()->id(), // current authenticated user
+                'parent_id' => $createdAlbum->id, 
+                'path' => $path,
+                'type' => 'album',
+                'created_by' => auth()->id(),
             ]);
         }
 
@@ -103,10 +115,6 @@ class AlbumController extends Controller
      */
     public function edit(Album $album)
     {
-        // return Inertia::render('Albums/Edit', [
-        //     'album' => $album,
-        // ]);
-
         // Load related image (if exists)
         $image = Image::where('parent_id', $album->id)
             ->where('type', 'album')
@@ -131,6 +139,17 @@ class AlbumController extends Controller
             'status' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+        if (!empty($validated['keyword'])) {
+            // Split by comma and/or space
+            $parts = preg_split('/[\s,]+/', $validated['keyword'], -1, PREG_SPLIT_NO_EMPTY);
+
+            // Remove duplicates and trim
+            $tags = array_unique(array_map('trim', $parts));
+
+            // Join into a comma-separated string
+            $validated['keyword'] = implode(', ', $tags);
+        }
 
         $album->update($validated);
         
@@ -183,6 +202,9 @@ class AlbumController extends Controller
         return redirect()->route('albums.index')->with('success', 'Album deleted successfully.');
     }
 
+    /**
+     * Update the status.
+     */
     public function toggleStatus(Request $request, Album $album)
     {
         $album->status = !$album->status; // toggle between 0 and 1

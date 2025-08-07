@@ -95,20 +95,20 @@
             <td class="py-2 px-4 border">{{ album.name }}</td>
             <td class="py-2 px-4 border">{{ album.description.length > 100 ? album.description.slice(0, 100) + '...' : album.description }}</td>
             <td class="py-2 px-4 border">{{ album.location }}</td>
-            <td class="py-2 px-4 border">{{ album.keyword }}</td>
-            <!-- <td class="py-2 px-4 border">
-              <span
-                :class="[
-                  'px-2 py-1 rounded-full text-sm font-semibold',
-                  album.status === 1
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                ]"
-              >
-                {{ album.status === 1 ? 'Active' : 'In-Active' }}
-              </span>
-            </td> -->
+            <td class="py-2 px-4 border">
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="(tag, index) in (album.keyword || '').split(',')"
+                  :key="index"
+                  class="inline-block bg-yellow-200 dark:bg-yellow-600 text-gray-800 dark:text-white text-xs font-medium px-2 py-0.5 rounded"
+                >
+                  {{ tag.trim() }}
+                </span>
+              </div>
+            </td>
 
+
+  
             <td class="py-2 px-4 border text-center">
               <input
                 type="checkbox"
@@ -119,14 +119,15 @@
               />
               <label
                 :for="'toggle-' + album.id"
-                class="toggle-label block w-14 h-8 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer relative"
+                class="toggle-label block w-10 h-5 rounded-full bg-gray-300 dark:bg-gray-600 cursor-pointer relative"
               >
                 <span
-                  class="dot absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition"
-                  :class="{ 'translate-x-6': album.status === 1 }"
+                  class="dot absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition"
+                  :class="{ 'translate-x-5': album.status === 1 }"
                 ></span>
               </label>
             </td>
+
 
 
             <td class="px-4 py-2 border text-center">
@@ -291,7 +292,8 @@
   transition: transform 0.3s ease;
 }
 
-.translate-x-6 {
-  transform: translateX(1.5rem); /* move dot right */
+.translate-x-5 {
+  transform: translateX(1.25rem); /* move dot right */
 }
 </style>
+
