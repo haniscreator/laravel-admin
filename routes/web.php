@@ -12,11 +12,6 @@ use App\Http\Controllers\ItemController;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
 Route::get('/', function () {
@@ -33,40 +28,30 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
-});
 
-Route::middleware(['auth', 'role:Editor'])->group(function () {
-    Route::get('/albums', [AlbumController::class, 'index']);
-});
-
-
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    Route::resource('albums', AlbumController::class)->names('albums');
 
-});
-
-
-Route::get('/items', function () {
-    return Inertia::render('Items');
-})->name('items');
-
-
-
-
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Profile
     Route::get('/profile', function () {
         return Inertia::render('Profile');
     })->name('profile');
+
+    // Items
+    Route::get('/items', function () {
+        return Inertia::render('Items');
+    })->name('items');
+
+    // Albums - Full resource routes
+    Route::resource('albums', AlbumController::class)->names('albums');
+
+    // Toggle status via PUT
+    Route::put('/albums/{album}/toggle-status', [AlbumController::class, 'toggleStatus']);
+
+    // Additional role-based access (Editor role)
+    // Route::middleware('role:Editor')->group(function () {
+    //     Route::get('/albums', [AlbumController::class, 'index']);
+    // });
 });
-
-Route::put('/albums/{album}/toggle-status', [AlbumController::class, 'toggleStatus']);
-
-
-
-
 
 

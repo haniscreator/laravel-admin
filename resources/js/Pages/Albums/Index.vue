@@ -36,52 +36,52 @@
 
 
     <div class="overflow-x-auto">
-      <table class="min-w-full bg-white border border-gray-200">
+      <table class="min-w-full bg-white border border-gray-200"> 
         <!-- Add this inside your table <thead> -->
 
-    <thead>
-      <tr>
-        <th @click="sortBy('id')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
-          ID
-          <span class="ml-1">
-            <span v-if="sort.field === 'id'">
-              {{ sort.direction === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">▲▼</span>
-          </span>
-        </th>
-        <th @click="sortBy('name')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
-          Name
-          <span class="ml-1">
-            <span v-if="sort.field === 'name'">
-              {{ sort.direction === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">▲▼</span>
-          </span>
-        </th>
-        <th @click="sortBy('description')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
-          Description
-          <span class="ml-1">
-            <span v-if="sort.field === 'description'">
-              {{ sort.direction === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">▲▼</span>
-          </span>
-        </th>
-        <th @click="sortBy('location')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
-          Location
-          <span class="ml-1">
-            <span v-if="sort.field === 'location'">
-              {{ sort.direction === 'asc' ? '▲' : '▼' }}
-            </span>
-            <span v-else class="text-gray-400">▲▼</span>
-          </span>
-        </th>
-        <th class="text-left py-2 px-4 border-b">Keywords</th>
-        <th class="text-left py-2 px-4 border-b">Status</th>
-        <th class="px-4 py-2">Actions</th>
-      </tr>
-    </thead>
+        <thead>
+          <tr>
+            <th @click="sortBy('id')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+              ID
+              <span class="ml-1">
+                <span v-if="sort.field === 'id'">
+                  {{ sort.direction === 'asc' ? '▲' : '▼' }}
+                </span>
+                <span v-else class="text-gray-400">▲▼</span>
+              </span>
+            </th>
+            <th @click="sortBy('name')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+              Name
+              <span class="ml-1">
+                <span v-if="sort.field === 'name'">
+                  {{ sort.direction === 'asc' ? '▲' : '▼' }}
+                </span>
+                <span v-else class="text-gray-400">▲▼</span>
+              </span>
+            </th>
+            <th @click="sortBy('description')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+              Description
+              <span class="ml-1">
+                <span v-if="sort.field === 'description'">
+                  {{ sort.direction === 'asc' ? '▲' : '▼' }}
+                </span>
+                <span v-else class="text-gray-400">▲▼</span>
+              </span>
+            </th>
+            <th @click="sortBy('location')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
+              Location
+              <span class="ml-1">
+                <span v-if="sort.field === 'location'">
+                  {{ sort.direction === 'asc' ? '▲' : '▼' }}
+                </span>
+                <span v-else class="text-gray-400">▲▼</span>
+              </span>
+            </th>
+            <th class="text-left py-2 px-4 border-b">Keywords</th>
+            <th class="text-left py-2 px-4 border-b">Status</th>
+            <th class="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
 
 
 
@@ -280,6 +280,7 @@
   export default {
     layout: MainLayout,
   }
+
 </script>
 
 
