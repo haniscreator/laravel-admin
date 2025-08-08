@@ -8,6 +8,19 @@
     </div>
 
       <div class="flex items-center space-x-2">
+        
+         <!-- Album dropdown -->
+        <select
+            v-model="filters.album_id"
+            @change="search"
+            class="border px-3 py-2 rounded max-w-xs"
+          >
+          <option value="">All Albums</option>
+          <option v-for="album in albums" :key="album.id" :value="album.id">
+            {{ album.name }}
+          </option>
+        </select>
+        
         <input
           v-model="filters.keyword"
           @input="search"
@@ -35,7 +48,7 @@
     <div class="overflow-x-auto">
       <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-200">
         <thead>
-          <tr class="bg-gray-100 dark:bg-gray-700 text-left">
+          <tr class="bg-gray-100 dark:bg-gray-700 text-left text-gray-800 dark:text-white">
             <th @click="sortBy('id')" class="cursor-pointer px-4 py-2">ID</th>
             <th @click="sortBy('name')" class="cursor-pointer px-4 py-2">Name</th>
             <th @click="sortBy('description')" class="cursor-pointer px-4 py-2">Description</th>
@@ -46,7 +59,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in items.data" :key="item.id" class="hover:bg-gray-50">
+          <tr v-for="item in items.data" :key="item.id" class="hover:bg-gray-50 text-gray-800 dark:text-white">
             <td class="py-2 px-4 border">{{ item.id }}</td>
             <td class="py-2 px-4 border">{{ item.name }}</td>
             <td class="py-2 px-4 border">{{ truncate(item.description) }}</td>
@@ -129,8 +142,15 @@ import { usePage } from '@inertiajs/inertia-vue3'
 const page = usePage()
 const items = computed(() => page.props.value.items)
 
+const props = defineProps({
+  items: Object,
+  albums: Array,
+  filters: Object,
+})
+
 const filters = ref({
   keyword: page.props.value.filters?.keyword || '',
+  album_id: props.filters.album_id || '',
 })
 
 const sort = reactive({
@@ -145,6 +165,7 @@ function truncate(text, length = 100) {
 function search() {
   Inertia.get('/items', {
     keyword: filters.value.keyword,
+    album_id: filters.value.album_id,
     sort: sort.field,
     direction: sort.direction,
   }, {
@@ -155,6 +176,7 @@ function search() {
 
 function resetSearch() {
   filters.value.keyword = ''
+  filters.value.album_id = ''
   search()
 }
 

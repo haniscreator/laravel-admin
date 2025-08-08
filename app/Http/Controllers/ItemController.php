@@ -18,6 +18,11 @@ class ItemController extends Controller
         
         $query = Item::with('album'); // eager load album
 
+        // Filter by album_id if provided
+        if ($request->filled('album_id')) {
+            $query->where('album_id', $request->album_id);
+        }
+
         // Handle search
         if ($request->filled('keyword')) {
             $query->where(function ($q) use ($request) {
@@ -36,10 +41,15 @@ class ItemController extends Controller
                 'status' => $item->status,
                 'album_name' => optional($item->album)->name,
             ])
-            ->appends($request->only('keyword'));
+            ->appends($request->only('keyword', 'album_id'));
+        
+        // Get albums for dropdown
+        $albums = Album::where('status', 1)->select('id', 'name')->get();
+
 
         return Inertia::render('Items/Index', [
             'items' => $items,
+            'albums' => $albums,
             'filters' => $request->only('keyword'),
         ]);
     }
