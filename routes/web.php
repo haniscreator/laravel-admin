@@ -55,14 +55,7 @@ Route::middleware([
     Route::put('/items/{item}/toggle-status', [ItemController::class, 'toggleStatus'])->name('items.toggle-status');
 
 
-    // Route::middleware(['auth', 'verified'])->group(function () {
-    //     Route::resource('items', ItemController::class)->names('items');
-    // });
-
-    // Additional role-based access (Editor role)
-    // Route::middleware('role:Editor')->group(function () {
-    //     Route::get('/albums', [AlbumController::class, 'index']);
-    // });
+    
 });
 
 
