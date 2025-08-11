@@ -46,25 +46,54 @@
     </div>
 
     <div class="overflow-x-auto">
-      <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-200">
+      <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-200 border-gray-200 dark:border-gray-600">
         <thead>
-          <tr class="bg-gray-100 dark:bg-gray-700 text-left text-gray-800 dark:text-white">
-            <th @click="sortBy('id')" class="cursor-pointer px-4 py-2">ID</th>
-            <th @click="sortBy('name')" class="cursor-pointer px-4 py-2">Name</th>
-            <th @click="sortBy('description')" class="cursor-pointer px-4 py-2">Description</th>
-            <th class="px-4 py-2">Album</th>
-            <th class="px-4 py-2">Keyword</th>
-            <th class="px-4 py-2">Status</th>
-            <th class="px-4 py-2">Actions</th>
-          </tr>
-        </thead>
+  <tr class="bg-gray-100 dark:bg-gray-700 text-left text-gray-800 dark:text-white">
+    <th @click="sortBy('id')" class="cursor-pointer px-4 py-2 whitespace-nowrap">
+      ID
+      <span class="ml-1">
+        <span v-if="sort.field === 'id'">
+          {{ sort.direction === 'asc' ? '▲' : '▼' }}
+        </span>
+        <span v-else class="text-gray-400">▲▼</span>
+      </span>
+    </th>
+    <th @click="sortBy('name')" class="cursor-pointer px-4 py-2 whitespace-nowrap">
+      Name
+      <span class="ml-1">
+        <span v-if="sort.field === 'name'">
+          {{ sort.direction === 'asc' ? '▲' : '▼' }}
+        </span>
+        <span v-else class="text-gray-400">▲▼</span>
+      </span>
+    </th>
+    <th @click="sortBy('description')" class="cursor-pointer px-4 py-2 whitespace-nowrap">
+      Description
+      <span class="ml-1">
+        <span v-if="sort.field === 'description'">
+          {{ sort.direction === 'asc' ? '▲' : '▼' }}
+        </span>
+        <span v-else class="text-gray-400">▲▼</span>
+      </span>
+    </th>
+    <th class="px-4 py-2">Album</th>
+    <th class="px-4 py-2">Keyword</th>
+    <th class="px-4 py-2">Status</th>
+    <th class="px-4 py-2">Actions</th>
+  </tr>
+</thead>
+
         <tbody>
-          <tr v-for="item in items.data" :key="item.id" class="hover:bg-gray-50 text-gray-800 dark:text-white">
-            <td class="py-2 px-4 border">{{ item.id }}</td>
-            <td class="py-2 px-4 border">{{ item.name }}</td>
-            <td class="py-2 px-4 border">{{ truncate(item.description) }}</td>
-            <td class="py-2 px-4 border">{{ item.album_name }}</td>
-            <td class="py-2 px-4 border">
+          <tr
+            v-for="item in items.data"
+            :key="item.id"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-white"
+          >
+            <td class="table-cell">{{ item.id }}</td>
+            <td class="table-cell">{{ item.name }}</td>
+            <td class="table-cell">{{ truncate(item.description) }}</td>
+            <td class="table-cell">{{ item.album_name }}</td>
+            <td class="table-cell">
               <div class="flex flex-wrap gap-1">
                 <span
                   v-for="(tag, index) in (item.keyword || '').split(',')"
@@ -75,7 +104,7 @@
                 </span>
               </div>
             </td>
-            <td class="py-2 px-4 border text-center">
+            <td class="py-2 px-4 border text-center border-gray-200 dark:border-gray-600">
               <input
                 type="checkbox"
                 :checked="item.status === 1"
@@ -94,7 +123,7 @@
               </label>
             </td>
 
-            <td class="px-3 py-2 border text-center">
+            <td class="px-3 py-2 border text-center border-gray-200 dark:border-gray-600">
               <button
                 @click="editItem(item.id)"
                 class="text-blue-500 hover:text-blue-700 mr-2"
@@ -148,6 +177,7 @@ const props = defineProps({
   filters: Object,
 })
 
+
 const filters = ref({
   keyword: page.props.value.filters?.keyword || '',
   album_id: props.filters.album_id || '',
@@ -157,6 +187,7 @@ const sort = reactive({
   field: page.props.value.filters?.sort || 'id',
   direction: page.props.value.filters?.direction || 'desc',
 })
+
 
 function truncate(text, length = 100) {
   return text.length > length ? text.slice(0, length) + '...' : text
@@ -193,13 +224,22 @@ function goToPage(page) {
 
 function sortBy(field) {
   if (sort.field === field) {
+    // Toggle direction if clicking the same field
     sort.direction = sort.direction === 'asc' ? 'desc' : 'asc'
   } else {
+    // Change field, reset direction to ascending
     sort.field = field
     sort.direction = 'asc'
   }
 
-  search()
+  // Reload page with new sorting params
+  Inertia.get('/items', {
+    sort: sort.field,
+    direction: sort.direction,
+  }, {
+    preserveState: true,
+    replace: true,
+  })
 }
 
 function goToCreateForm() {
@@ -245,5 +285,15 @@ export default {
 
 .translate-x-5 {
   transform: translateX(1.25rem); /* move dot right */
+}
+
+.table-cell {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border-width: 1px; /* border */
+  border-color: rgb(229 231 235); /* border-gray-200 */
+}
+
+.dark .table-cell {
+  border-color: rgb(75 85 99); /* border-gray-600 */
 }
 </style>

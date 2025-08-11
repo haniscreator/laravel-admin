@@ -15,7 +15,6 @@ class ItemController extends Controller
      */
     public function index(Request $request)
     {
-        
         $query = Item::with('album'); // eager load album
 
         // Filter by album_id if provided
@@ -23,7 +22,7 @@ class ItemController extends Controller
             $query->where('album_id', $request->album_id);
         }
 
-        // Handle search
+        // Handle search keyword filter
         if ($request->filled('keyword')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->keyword . '%')
@@ -32,7 +31,24 @@ class ItemController extends Controller
             });
         }
 
-        $items = $query->latest()->paginate(10)
+        // Get sort field & direction with validation
+        $allowedSortFields = ['id', 'name', 'description'];
+        $sortField = $request->get('sort', 'id');
+        $sortDirection = $request->get('direction', 'asc');
+
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'id';
+        }
+
+        if (!in_array(strtolower($sortDirection), ['asc', 'desc'])) {
+            $sortDirection = 'asc';
+        }
+
+        // Apply sorting
+        $query->orderBy($sortField, $sortDirection);
+
+        // Paginate and transform results
+        $items = $query->paginate(10)
             ->through(fn ($item) => [
                 'id' => $item->id,
                 'name' => $item->name,
@@ -41,18 +57,19 @@ class ItemController extends Controller
                 'status' => $item->status,
                 'album_name' => optional($item->album)->name,
             ])
-            ->appends($request->only('keyword', 'album_id'));
-        
+            ->appends($request->only('keyword', 'album_id', 'sort', 'direction'));
+
         // Get albums for dropdown
         $albums = Album::where('status', 1)->select('id', 'name')->get();
 
-
+        // Pass filters (including sort) back to Vue
         return Inertia::render('Items/Index', [
             'items' => $items,
             'albums' => $albums,
-            'filters' => $request->only('keyword'),
+            'filters' => $request->only('keyword', 'album_id', 'sort', 'direction'),
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

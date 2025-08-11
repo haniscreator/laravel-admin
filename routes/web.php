@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,30 +33,23 @@ Route::middleware([
     // Dashboard
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    // Profile
-    Route::get('/profile', function () {
-        return Inertia::render('Profile');
-    })->name('profile');
-
-    // Items
-    Route::get('/items', function () {
-        return Inertia::render('Items');
-    })->name('items');
 
     // Albums - Full resource routes
     Route::resource('albums', AlbumController::class)->names('albums');
-
-    Route::resource('items', ItemController::class)->names('items');
-
-
-
-    // Toggle status via PUT
+    // Albums - Toggle status via PUT
     Route::put('/albums/{album}/toggle-status', [AlbumController::class, 'toggleStatus']);
 
+    // Items - Full resource routes
+    Route::resource('items', ItemController::class)->names('items');
+    // Items - Toggle status via PUT
     Route::put('/items/{item}/toggle-status', [ItemController::class, 'toggleStatus'])->name('items.toggle-status');
 
-
-    
+    // Profile - Update Information
+    Route::middleware(['auth', 'verified'])->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/user/profile-information', [ProfileController::class, 'update'])
+            ->name('user-profile-information.update');
+    });
 });
 
 

@@ -36,10 +36,8 @@
 
 
     <div class="overflow-x-auto">
-      <table class="min-w-full bg-white border border-gray-200"> 
-        <!-- Add this inside your table <thead> -->
-
-        <thead>
+      <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-200">
+        <thead class="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
           <tr>
             <th @click="sortBy('id')" class="cursor-pointer px-4 py-2 whitespace-nowrap text-left">
               ID
@@ -77,25 +75,27 @@
                 <span v-else class="text-gray-400">▲▼</span>
               </span>
             </th>
-            <th class="text-left py-2 px-4 border-b">Keywords</th>
-            <th class="text-left py-2 px-4 border-b">Status</th>
+            <th class="text-left py-2 px-4">Keywords</th>
+            <th class="text-left py-2 px-4">Status</th>
             <th class="px-4 py-2">Actions</th>
+         
+            <!-- Repeat for other headers -->
           </tr>
         </thead>
-
-
 
         <tbody>
           <tr
             v-for="album in albums.data"
             :key="album.id"
-            class="hover:bg-gray-50"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            <td class="py-2 px-4 border">{{ album.id }}</td>
-            <td class="py-2 px-4 border">{{ album.name }}</td>
-            <td class="py-2 px-4 border">{{ album.description.length > 100 ? album.description.slice(0, 100) + '...' : album.description }}</td>
-            <td class="py-2 px-4 border">{{ album.location }}</td>
-            <td class="py-2 px-4 border">
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">{{ album.id }}</td>
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">{{ album.name }}</td>
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">
+              {{ album.description.length > 100 ? album.description.slice(0, 100) + '...' : album.description }}
+            </td>
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">{{ album.location }}</td>
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">
               <div class="flex flex-wrap gap-1">
                 <span
                   v-for="(tag, index) in (album.keyword || '').split(',')"
@@ -107,9 +107,7 @@
               </div>
             </td>
 
-
-  
-            <td class="py-2 px-4 border text-center">
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600 text-center">
               <input
                 type="checkbox"
                 :checked="album.status === 1"
@@ -128,19 +126,17 @@
               </label>
             </td>
 
-
-
-            <td class="px-4 py-2 border text-center">
+            <td class="px-4 py-2 border border-gray-200 dark:border-gray-600 text-center">
               <button
                 @click="editAlbum(album.id)"
-                class="text-blue-500 hover:text-blue-700 mr-2"
+                class="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 mr-2"
                 title="Edit"
               >
                 <i class="fas fa-edit"></i>
               </button>
               <button
                 @click="deleteAlbum(album.id)"
-                class="text-red-500 hover:text-red-700"
+                class="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                 title="Delete"
               >
                 <i class="fas fa-trash-alt"></i>
@@ -149,6 +145,7 @@
           </tr>
         </tbody>
       </table>
+
     </div>
 
     <div class="flex justify-end mt-4">
@@ -296,5 +293,6 @@
 .translate-x-5 {
   transform: translateX(1.25rem); /* move dot right */
 }
+
 </style>
 

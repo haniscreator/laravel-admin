@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
     {   
          //dd(Auth::check()); // should be true
 
-        $user = $request->user()?->only(['id', 'name', 'email']);
+        $user = $request->user()?->only(['id', 'name', 'email', 'profile_photo_path']);
 
         logger()->info('Sharing user data to Inertia', ['user' => $user]);
 
