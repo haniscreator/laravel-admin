@@ -18,4 +18,10 @@ class Album extends Model
         'created_date',
         'created_by',
     ];
+
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
+
 }

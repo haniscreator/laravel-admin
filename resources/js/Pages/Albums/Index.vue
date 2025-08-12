@@ -7,30 +7,48 @@
     </div>
 
     <div class="flex items-center space-x-2">
-  <input
-    v-model="filters.keyword"
-    @input="search"
-    type="text"
-    placeholder="Search albums..."
-    class="border px-3 py-2 rounded w-64"
-  />
-
-  <!-- Reset Button -->
-  <button
-    @click="resetSearch"
-    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
-  >
+      <!-- Search Input -->
+      <input
+        v-model="filters.keyword"
+        @input="search"
+        type="text"
+        placeholder="Search albums..."
+        class="border px-3 py-2 rounded w-64"
+      />
     
-    Reset
-  </button>
+      <!-- Status Dropdown -->
+      <select
+        v-model="filters.status"
+        @change="search"
+        class="appearance-none border border-gray-300 dark:border-gray-600 
+              bg-white dark:bg-gray-800 
+              text-gray-700 dark:text-gray-200 
+              px-3 py-2 pr-8 rounded focus:outline-none focus:ring-2 
+              focus:ring-indigo-500 focus:border-indigo-500"
+      >
+        <option value="">All</option>
+        <option value="1">Active</option>
+        <option value="0">In-Active</option>
+      </select>
 
-  <button
-    @click="goToCreateForm"
-    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
-  >
-    + Add New
-  </button>
-</div>
+
+      <!-- Reset Button -->
+      <button
+        @click="resetSearch"
+        class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+      >
+        
+        Reset
+      </button>
+
+      <!-- Add New Button -->
+      <button
+        @click="goToCreateForm"
+        class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+      >
+        + Add New
+      </button>
+  </div>
 
 </div>
 
@@ -90,22 +108,34 @@
             class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">{{ album.id }}</td>
-            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">{{ album.name }}</td>
+            <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">
+                <span>{{ album.name }}</span>
+                <span
+                    v-if="album.items_count > 0"
+                    class="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full 
+                          bg-red-300 text-red-800 dark:bg-red-900 dark:text-blue-200"
+                >
+                    {{ album.items_count }}
+                </span>
+            </td>
+
+
             <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">
               {{ album.description.length > 100 ? album.description.slice(0, 100) + '...' : album.description }}
             </td>
             <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">{{ album.location }}</td>
             <td class="py-2 px-4 border border-gray-200 dark:border-gray-600">
-              <div class="flex flex-wrap gap-1">
+              <div v-if="album.keyword && album.keyword.trim() !== ''" class="flex flex-wrap gap-1">
                 <span
-                  v-for="(tag, index) in (album.keyword || '').split(',')"
+                  v-for="(tag, index) in album.keyword.split(',').map(k => k.trim()).filter(k => k)"
                   :key="index"
                   class="inline-block bg-yellow-200 dark:bg-yellow-600 text-gray-800 dark:text-white text-xs font-medium px-2 py-0.5 rounded"
                 >
-                  {{ tag.trim() }}
+                  {{ tag }}
                 </span>
               </div>
             </td>
+
 
             <td class="py-2 px-4 border border-gray-200 dark:border-gray-600 text-center">
               <input
@@ -185,9 +215,15 @@
   
 
   const props = usePage().props.value
-  const filters = ref(props.filters || { keyword: '' })
+  //const filters = ref(props.filters || { keyword: '' })
+  
   const page = usePage()
   const albums = computed(() => usePage().props.value.albums)
+
+  const filters = ref({
+  keyword: page.props.filters?.keyword || '',
+  status: page.props.filters?.status || '', // Default to "All"
+})
 
   const sort = reactive({
     field: page.props.filters?.sort || 'id',
@@ -229,6 +265,7 @@
   function search() {
     Inertia.get('/albums', {
       keyword: filters.value.keyword,
+       status: filters.value.status,
       sort: sort.field,
       direction: sort.direction,
     }, {
@@ -239,6 +276,7 @@
 
   function resetSearch() {
     filters.value.keyword = ''
+    filters.value.status = 'all'
     search()
   }
 

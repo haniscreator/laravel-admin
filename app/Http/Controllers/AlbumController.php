@@ -17,7 +17,7 @@ class AlbumController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Album::query();
+        $query = Album::withCount('items'); // This adds items_count
 
         // Handle search
         if ($request->filled('keyword')) {
@@ -27,6 +27,11 @@ class AlbumController extends Controller
                 ->orWhere('location', 'like', '%' . $request->keyword . '%')
                 ->orWhere('keyword', 'like', '%' . $request->keyword . '%');
             });
+        }
+
+        // Handle status filter
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
         }
 
         // Handle sorting
@@ -46,6 +51,7 @@ class AlbumController extends Controller
             'filters' => $request->only('keyword', 'sort', 'direction'),
         ]);
     }
+
 
 
 
