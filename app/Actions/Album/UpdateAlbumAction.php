@@ -18,6 +18,14 @@ class UpdateAlbumAction
     {
         $data = $request->validated();
         $image = $request->file('image');
-        return $this->service->updateAlbum($album, $data, $image);
+        //return $this->service->updateAlbum($album, $data, $image);
+
+         $album = $this->service->updateAlbum($album,$data);
+
+        if ($image) {
+            $this->service->storeImage($album->id, $image, auth()->id(), 'album' );
+        }
+
+        return $album;
     }
 }

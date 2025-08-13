@@ -21,7 +21,7 @@ class StoreAlbumAction
         $album = $this->service->createAlbum($data);
 
         if ($image) {
-            $this->service->storeImage($album->id, $image, 'album');
+            $this->service->storeImage($album->id, $image,auth()->id(),'album', );
         }
 
         return $album;

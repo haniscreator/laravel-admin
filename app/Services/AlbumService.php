@@ -54,9 +54,8 @@ class AlbumService
      */
     public function createAlbum(array $data): Album
     {
-        if (!empty($data['keyword'])) {
-            $data['keyword'] = $this->normalizeKeywords($data['keyword']);
-        }
+
+        $data = $this->prepareAlbumData($data);
         
         return $this->album->create($data);
     }
@@ -66,40 +65,19 @@ class AlbumService
      */
     public function updateAlbum(Album $album, array $data, ?UploadedFile $image = null)
     {
-        if (!empty($data['keyword'])) {
-            $data['keyword'] = $this->normalizeKeywords($data['keyword']);
-        }
 
-        $album->update($data);
+        $data = $this->prepareAlbumData($data);
 
-        if ($image) {
-            // Delete existing images and files for this album
-            $existing = Image::where('parent_id', $album->id)->where('type', 'album')->get();
-            foreach ($existing as $row) {
-                if (Storage::disk('public')->exists($row->path)) {
-                    Storage::disk('public')->delete($row->path);
-                }
-            }
-            Image::where('parent_id', $album->id)->where('type', 'album')->delete();
+        return $album->update($data);
 
-            // store new one
-            $this->storeImage($album->id, $image, 'album');
-        }
-
-        return $album;
     }
 
     public function deleteAlbum(Album $album)
     {
-        // optional: delete images
-        $existing = Image::where('parent_id', $album->id)->where('type', 'album')->get();
-        foreach ($existing as $row) {
-            if (Storage::disk('public')->exists($row->path)) {
-                Storage::disk('public')->delete($row->path);
-            }
-        }
-        Image::where('parent_id', $album->id)->where('type', 'album')->delete();
+        // Delete all album images (files + DB records)
+        $this->deleteAlbumImages($album);
 
+        // Delete album itself
         $album->delete();
     }
 
@@ -119,23 +97,78 @@ class AlbumService
         ];
     }
 
-    public function storeImage(int $parentId, UploadedFile $image, string $type = 'album')
+    // public function storeImage(int $parentId, UploadedFile $image, int $user_id, string $type = 'album')
+    // {
+    //     $filename = time() . '.' . $image->getClientOriginalExtension();
+    //     $path = $image->storeAs('images/upload', $filename, 'public');
+
+    //     return Image::create([
+    //         'parent_id' => $parentId,
+    //         'path' => $path,
+    //         'type' => $type,
+    //         'created_by' => $user_id,
+    //     ]);
+    // }
+
+    public function storeImage(int $parentId, UploadedFile $image, int $user_id, string $type = 'album')
     {
+        // Delete existing images for this parent/type
+        $existing = Image::where('parent_id', $parentId)
+                        ->where('type', $type)
+                        ->get();
+
+        foreach ($existing as $row) {
+            if (Storage::disk('public')->exists($row->path)) {
+                Storage::disk('public')->delete($row->path);
+            }
+            $row->delete();
+        }
+
+        // Store new image file
         $filename = time() . '.' . $image->getClientOriginalExtension();
         $path = $image->storeAs('images/upload', $filename, 'public');
 
+        // Create new Image record
         return Image::create([
             'parent_id' => $parentId,
             'path' => $path,
             'type' => $type,
-            'created_by' => auth()->id(),
+            'created_by' => $user_id,
         ]);
     }
+
 
     protected function normalizeKeywords(string $raw): string
     {
         $parts = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
         $tags = array_unique(array_map('trim', $parts));
         return implode(', ', $tags);
+    }
+
+    protected function prepareAlbumData(array $data): array
+    {
+        if (!empty($data['keyword'])) {
+            $data['keyword'] = $this->normalizeKeywords($data['keyword']);
+        }
+
+        return $data;
+    }
+
+    public function deleteAlbumImages(Album $album, string $type = 'album')
+    {
+        $existing = Image::where('parent_id', $album->id)
+            ->where('type', $type)
+            ->get();
+
+        foreach ($existing as $row) {
+            if (Storage::disk('public')->exists($row->path)) {
+                Storage::disk('public')->delete($row->path);
+            }
+        }
+
+        // Remove DB records for images
+        Image::where('parent_id', $album->id)
+            ->where('type', $type)
+            ->delete();
     }
 }
