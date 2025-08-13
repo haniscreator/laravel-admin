@@ -17,6 +17,13 @@ class StoreAlbumAction
     {
         $data = $request->validated();
         $image = $request->file('image');
-        return $this->service->createAlbum($data, $image);
+
+        $album = $this->service->createAlbum($data);
+
+        if ($image) {
+            $this->service->storeImage($album->id, $image, 'album');
+        }
+
+        return $album;
     }
 }

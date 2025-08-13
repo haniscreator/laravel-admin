@@ -12,7 +12,6 @@ class Album extends Model
         'name',
         'description',
         'keyword',
-        'image',
         'location',
         'status',
         'created_date',

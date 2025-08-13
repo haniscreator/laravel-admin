@@ -9,12 +9,19 @@ use Illuminate\Support\Facades\Storage;
 
 class AlbumService
 {
+    protected $album;
+
+    public function __construct(Album $album)
+    {
+        $this->album = $album;
+    }
+    
     /**
      * Search/sort/paginate album query.
      */
     public function getPaginated($request, $perPage = 10)
     {
-        $query = Album::withCount('items');
+        $query = $this->album->withCount('items');
 
         if ($request->filled('keyword')) {
             $kw = $request->keyword;
@@ -45,20 +52,13 @@ class AlbumService
     /**
      * Create album and optional image.
      */
-    public function createAlbum(array $data, ?UploadedFile $image = null)
+    public function createAlbum(array $data): Album
     {
-        // Normalize keywords => "a, b, c"
         if (!empty($data['keyword'])) {
             $data['keyword'] = $this->normalizeKeywords($data['keyword']);
         }
-
-        $album = Album::create($data);
-
-        if ($image) {
-            $this->storeImage($album->id, $image, 'album');
-        }
-
-        return $album;
+        
+        return $this->album->create($data);
     }
 
     /**
@@ -119,7 +119,7 @@ class AlbumService
         ];
     }
 
-    protected function storeImage(int $parentId, UploadedFile $image, string $type = 'album')
+    public function storeImage(int $parentId, UploadedFile $image, string $type = 'album')
     {
         $filename = time() . '.' . $image->getClientOriginalExtension();
         $path = $image->storeAs('images/upload', $filename, 'public');
