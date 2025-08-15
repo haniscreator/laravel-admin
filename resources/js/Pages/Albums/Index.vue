@@ -5,6 +5,9 @@
     <div v-if="$page.props.flash.success" class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 p-3 rounded mb-4">
         {{ $page.props.flash.success }}
     </div>
+    <div v-if="$page.props.flash.error" class="bg-red-100 text-red-800 p-3 rounded mb-4">
+      {{ $page.props.flash.error }}
+    </div>
 
     <div class="flex items-center space-x-2">
       <!-- Search Input -->
@@ -46,7 +49,23 @@
         @click="goToCreateForm"
         class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
       >
-        + Add New
+        Add New
+      </button>
+
+      <!-- Import Button -->
+      <input
+        type="file"
+        ref="csvInput"
+        @change="importCsv"
+        accept=".csv"
+        style="display: none;"
+      />
+
+      <button
+        @click="$refs.csvInput.click()"
+        class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+      >
+      Import
       </button>
   </div>
 
@@ -208,10 +227,12 @@
 </template>
 
 <script setup>
-
+  import axios from 'axios'
   import { ref, watch, computed, reactive } from 'vue'
   import { Inertia } from '@inertiajs/inertia'
   import { usePage } from '@inertiajs/inertia-vue3'
+  import { router } from '@inertiajs/vue3'
+  
   
 
   const props = usePage().props.value
@@ -223,7 +244,7 @@
   const filters = ref({
   keyword: page.props.filters?.keyword || '',
   status: page.props.filters?.status || '', // Default to "All"
-})
+  })
 
   const sort = reactive({
     field: page.props.filters?.sort || 'id',
@@ -276,7 +297,7 @@
 
   function resetSearch() {
     filters.value.keyword = ''
-    filters.value.status = 'all'
+    filters.value.status = ''
     search()
   }
 
@@ -300,6 +321,24 @@
     Inertia.put(`/albums/${albumId}/toggle-status`, {}, {
       preserveScroll: true,
       preserveState: true,
+    })
+  }
+
+ // --- NEW functions for CSV import ---
+  function importCsv(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('csv', file)
+
+    router.post('/albums/import', formData, {
+      onSuccess: () => {
+        refreshList()
+      },
+      onError: () => {
+        alert('Import failed. Please check your file.')
+      }
     })
   }
 

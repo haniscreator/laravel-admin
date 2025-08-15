@@ -38,6 +38,8 @@ Route::middleware([
     Route::resource('albums', AlbumController::class)->names('albums');
     // Albums - Toggle status via PUT
     Route::put('/albums/{album}/toggle-status', [AlbumController::class, 'toggleStatus']);
+    Route::post('/albums/import', [AlbumController::class, 'import'])
+    ->name('albums.import');
 
     // Items - Full resource routes
     Route::resource('items', ItemController::class)->names('items');

@@ -13,6 +13,10 @@ use App\Actions\Album\ToggleAlbumStatusAction;
 use App\Http\Requests\StoreAlbumRequest;
 use App\Http\Requests\UpdateAlbumRequest;
 use App\Models\Album;
+use App\Actions\Album\ImportAlbumsFromCsv;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AlbumController extends Controller
 {
@@ -63,4 +67,54 @@ class AlbumController extends Controller
         // Because your UI expects an Inertia response sometimes, returning back is safe:
         return redirect()->back()->with('success', 'Status updated.');
     }
+
+    public function import(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'csv' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->with('error', 'Invalid file. Please upload a valid CSV.');
+        }
+
+        $file = $request->file('csv');
+        $importedCount = 0;
+
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            $header = fgetcsv($handle);
+            $header = array_map('trim', $header);
+
+            $expected = ['name', 'description', 'keyword', 'location', 'status'];
+
+            if ($header !== $expected) {
+                return back()->with('error', 'Invalid CSV header. Expected: ' . implode(', ', $expected));
+            }
+
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) < count($expected)) {
+                    continue;
+                }
+
+                $data = array_combine($expected, $row);
+
+                Album::create([
+                    'name'         => $data['name'],
+                    'description'  => $data['description'],
+                    'keyword'      => $data['keyword'],
+                    'location'     => $data['location'],
+                    'status'       => $data['status'],
+                    'created_date' => now(),
+                    'created_by'   => Auth::id(),
+                ]);
+
+                $importedCount++;
+            }
+
+            fclose($handle);
+        }
+
+        return back()->with('success', "{$importedCount} albums imported successfully.");
+    }
+
 }

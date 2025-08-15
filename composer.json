@@ -12,6 +12,7 @@
         "laravel/jetstream": "^4.3",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "league/csv": "^9.24",
         "spatie/laravel-permission": "^6.21",
         "tightenco/ziggy": "^2.0"
     },

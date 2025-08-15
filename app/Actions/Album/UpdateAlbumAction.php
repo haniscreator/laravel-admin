@@ -18,8 +18,7 @@ class UpdateAlbumAction
     {
         $data = $request->validated();
         $image = $request->file('image');
-        //return $this->service->updateAlbum($album, $data, $image);
-
+        
          $album = $this->service->updateAlbum($album,$data);
 
         if ($image) {
