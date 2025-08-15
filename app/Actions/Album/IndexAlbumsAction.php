@@ -15,7 +15,7 @@ class IndexAlbumsAction
 
     public function handle(Request $request)
     {
-        $albums = $this->service->getPaginated($request);
+        $albums = $this->service->getList($request);
 
         return [
             'albums' => $albums,

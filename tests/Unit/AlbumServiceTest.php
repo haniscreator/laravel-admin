@@ -107,57 +107,133 @@ class AlbumServiceTest extends TestCase
     }
 
     public function test_update_album()
-{
-    $expectedData = [
-        'name' => 'nam name updated',
-        'description' => 'desc desc updated',
-        'location' => 'mdy',
-        'keyword' => 'keyword1, keyword2',
-        'status' => '1'
-    ];
+    {
+        $expectedData = [
+            'name' => 'nam name updated',
+            'description' => 'desc desc updated',
+            'location' => 'mdy',
+            'keyword' => 'keyword1, keyword2',
+            'status' => '1'
+        ];
 
-    // Mock Album instance
-    $mockAlbumInstance = \Mockery::mock(\App\Models\Album::class);
+        // Mock Album instance
+        $mockAlbumInstance = \Mockery::mock(\App\Models\Album::class);
 
-    // Expect prepareAlbumData to be called internally and return same $expectedData
-    $service = \Mockery::mock(\App\Services\AlbumService::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
+        // Expect prepareAlbumData to be called internally and return same $expectedData
+        $service = \Mockery::mock(\App\Services\AlbumService::class)
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
 
-    $service->shouldReceive('prepareAlbumData')
-        ->once()
-        ->with($expectedData)
-        ->andReturn($expectedData);
+        $service->shouldReceive('prepareAlbumData')
+            ->once()
+            ->with($expectedData)
+            ->andReturn($expectedData);
 
-    // Expect update on the album instance
-    $mockAlbumInstance
-        ->shouldReceive('update')
-        ->once()
-        ->with($expectedData)
-        ->andReturn(true);
+        // Expect update on the album instance
+        $mockAlbumInstance
+            ->shouldReceive('update')
+            ->once()
+            ->with($expectedData)
+            ->andReturn(true);
 
-    $result = $service->updateAlbum($mockAlbumInstance, $expectedData);
+        $result = $service->updateAlbum($mockAlbumInstance, $expectedData);
 
-    $this->assertTrue($result);
-}
-
-
-public function test_delete_album_calls_image_deletion_and_album_delete()
-{
-    $mockAlbumInstance = Mockery::mock(\App\Models\Album::class);
-    $mockAlbumInstance->shouldReceive('delete')->once()->andReturn(true);
-
-    $serviceMock = Mockery::mock(\App\Services\AlbumService::class)->makePartial();
-    $serviceMock->shouldReceive('deleteAlbumImages')->once()->with($mockAlbumInstance);
-
-    $serviceMock->deleteAlbum($mockAlbumInstance);
-
-    // Mark this test as having performed assertions
-    $this->addToAssertionCount(1);
-}
+        $this->assertTrue($result);
+    }
 
 
+    public function test_delete_album_calls_image_deletion_and_album_delete()
+    {
+        $mockAlbumInstance = Mockery::mock(\App\Models\Album::class);
+        $mockAlbumInstance->shouldReceive('delete')->once()->andReturn(true);
 
+        $serviceMock = Mockery::mock(\App\Services\AlbumService::class)->makePartial();
+        $serviceMock->shouldReceive('deleteAlbumImages')->once()->with($mockAlbumInstance);
+
+        $serviceMock->deleteAlbum($mockAlbumInstance);
+
+        // Mark this test as having performed assertions
+        $this->addToAssertionCount(1);
+    }
+
+    public function test_toggle_status_flips_status_and_saves()
+    {
+        // Create a real Eloquent Album instance
+        $album = new \App\Models\Album();
+        $album->status = true;
+
+        // Spy on it so we can intercept save()
+        $albumSpy = Mockery::spy($album)->makePartial();
+        $albumSpy->shouldReceive('save')->once()->andReturn(true);
+
+        $service = new \App\Services\AlbumService(Mockery::mock(\App\Models\Album::class));
+
+        // Act
+        $result = $service->toggleStatus($albumSpy);
+
+        // Assert
+        $this->assertFalse($albumSpy->status);
+        $this->assertSame($albumSpy, $result);
+    }
+
+    public function test_get_list_returns_paginated_result()
+    {
+        // Mock the Album model
+        $mockAlbum = Mockery::mock(\App\Models\Album::class);
+
+        // Mock the query builder
+        $mockQuery = Mockery::mock();
+
+        // Mock paginator
+        $mockPaginator = Mockery::mock();
+
+        // Album::withCount('items') → $mockQuery
+        $mockAlbum->shouldReceive('withCount')
+            ->once()
+            ->with('items')
+            ->andReturn($mockQuery);
+
+        // Chained calls
+        $mockQuery->shouldReceive('where')->andReturnSelf();
+        $mockQuery->shouldReceive('orWhere')->andReturnSelf();
+        $mockQuery->shouldReceive('orderBy')->andReturnSelf();
+        $mockQuery->shouldReceive('paginate')
+            ->once()
+            ->with(10)
+            ->andReturn($mockPaginator);
+
+        $mockPaginator->shouldReceive('appends')
+            ->once()
+            ->with([])
+            ->andReturnSelf();
+
+        // Mock the request
+        $mockRequest = Mockery::mock(\Illuminate\Http\Request::class);
+        $mockRequest->shouldReceive('filled')->with('keyword')->andReturn(true);
+        $mockRequest->shouldReceive('filled')->with('status')->andReturn(true);
+
+        // Simulate property access
+        $mockRequest->keyword = 'test';
+        $mockRequest->status = '1';
+
+        // Sorting inputs
+        $mockRequest->shouldReceive('input')->with('sort', 'id')->andReturn('name');
+        $mockRequest->shouldReceive('input')->with('direction', 'desc')->andReturn('asc');
+
+        // ✅ Fix: match the exact argument list
+        $mockRequest->shouldReceive('only')
+            ->with('keyword', 'sort', 'direction', 'status')
+            ->andReturn([]);
+
+        // Create service
+        $service = new \App\Services\AlbumService($mockAlbum);
+
+        // Call method
+        $result = $service->getList($mockRequest, 10);
+
+        // Assert paginator was returned
+        $this->assertSame($mockPaginator, $result);
+    }
 
 
 }

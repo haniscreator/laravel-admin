@@ -19,7 +19,7 @@ class AlbumService
     /**
      * Search/sort/paginate album query.
      */
-    public function getPaginated($request, $perPage = 10)
+    public function getList($request, $perPage = 10)
     {
         $query = $this->album->withCount('items');
 
