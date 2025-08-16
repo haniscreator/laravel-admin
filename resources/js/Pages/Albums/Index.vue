@@ -1,75 +1,106 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
+    <div class="space-y-4 p-4">
+
+  <!-- Row 1: Title + Flash Messages -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
     <h1 class="text-2xl font-bold dark:text-gray-200">Albums</h1>
-    <div v-if="$page.props.flash.success" class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 p-3 rounded mb-4">
-        {{ $page.props.flash.success }}
-    </div>
-    <div v-if="$page.props.flash.error" class="bg-red-100 text-red-800 p-3 rounded mb-4">
-      {{ $page.props.flash.error }}
-    </div>
 
-    <div class="flex items-center space-x-2">
-      <!-- Search Input -->
-      <input
-        v-model="filters.keyword"
-        @input="search"
-        type="text"
-        placeholder="Search albums..."
-        class="border px-3 py-2 rounded w-64"
-      />
-    
-      <!-- Status Dropdown -->
-      <select
-        v-model="filters.status"
-        @change="search"
-        class="appearance-none border border-gray-300 dark:border-gray-600 
-              bg-white dark:bg-gray-800 
-              text-gray-700 dark:text-gray-200 
-              px-3 py-2 pr-8 rounded focus:outline-none focus:ring-2 
-              focus:ring-indigo-500 focus:border-indigo-500"
-      >
-        <option value="">All</option>
-        <option value="1">Active</option>
-        <option value="0">In-Active</option>
-      </select>
+    <div class="flex flex-col sm:flex-row sm:justify-center items-center gap-2 w-full">
 
-
-      <!-- Reset Button -->
-      <button
-        @click="resetSearch"
-        class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
-      >
-        
-        Reset
-      </button>
-
-      <!-- Add New Button -->
-      <button
-        @click="goToCreateForm"
-        class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
-      >
-        Add New
-      </button>
-
-      <!-- Import Button -->
-      <input
-        type="file"
-        ref="csvInput"
-        @change="importCsv"
-        accept=".csv"
-        style="display: none;"
-      />
-
-      <button
-        @click="$refs.csvInput.click()"
-        class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
-      >
-      Import
-      </button>
+  <!-- Laravel Flash Messages -->
+  <div
+    v-if="globalSuccess"
+    class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded text-center"
+  >
+    {{ globalSuccess }}
   </div>
 
+  <div
+    v-if="globalError"
+    class="bg-red-100 text-red-800 px-4 py-2 rounded text-center"
+  >
+    {{ globalError }}
+  </div>
+
+  <!-- CSV Import Messages -->
+  <div
+    v-if="successMessage"
+    class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded text-center"
+  >
+    {{ successMessage }}
+  </div>
+
+  <div
+    v-if="errorMessage"
+    class="bg-red-100 text-red-800 px-4 py-2 rounded text-center"
+  >
+    {{ errorMessage }}
+  </div>
 </div>
+
+  </div>
+
+  <!-- Row 2: Filters + Actions -->
+<div class="flex flex-wrap items-center justify-end gap-2 mb-12">
+  <!-- Search -->
+  <input
+    v-model="filters.keyword"
+    @input="search"
+    type="text"
+    placeholder="Search albums..."
+    class="border px-3 py-2 rounded w-64"
+  />
+
+  <!-- Status Dropdown -->
+  <select
+    v-model="filters.status"
+    @change="search"
+    class="appearance-none border border-gray-300 dark:border-gray-600 
+          bg-white dark:bg-gray-800 
+          text-gray-700 dark:text-gray-200 
+          px-3 py-2 pr-8 rounded focus:outline-none focus:ring-2 
+          focus:ring-indigo-500 focus:border-indigo-500"
+  >
+    <option value="">All</option>
+    <option value="1">Active</option>
+    <option value="0">In-Active</option>
+  </select>
+
+  <!-- Reset -->
+  <button
+    @click="resetSearch"
+    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900"
+  >
+    Reset
+  </button>
+
+  <!-- Add New -->
+  <button
+    @click="goToCreateForm"
+    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900"
+  >
+    Add New
+  </button>
+
+  <!-- Import -->
+  <input
+    type="file"
+    ref="csvInput"
+    @change="importCsv"
+    accept=".csv"
+    class="hidden"
+  />
+  <button
+    @click="$refs.csvInput.click()"
+    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900"
+  >
+    Import
+  </button>
+</div>
+
+</div>
+
 
 
     <div class="overflow-x-auto">
@@ -233,13 +264,26 @@
   import { usePage } from '@inertiajs/inertia-vue3'
   import { router } from '@inertiajs/vue3'
   
-  
+  const successMessage = ref('')
+  const errorMessage = ref('')    
 
-  const props = usePage().props.value
+
+
+  
   //const filters = ref(props.filters || { keyword: '' })
   
   const page = usePage()
   const albums = computed(() => usePage().props.value.albums)
+  const props = usePage().props.value
+
+  // Fallback to {} if flash is undefined
+//const flash = page.props.flash || {}
+const flash = page.props.value.flash || {}
+
+
+// Local reactive variables for global Laravel flash messages
+const globalSuccess = ref(flash.success || '')
+const globalError = ref(flash.error || '')
 
   const filters = ref({
   keyword: page.props.filters?.keyword || '',
@@ -325,26 +369,85 @@
   }
 
  // --- NEW functions for CSV import ---
+ 
   function importCsv(e) {
-    const file = e.target.files[0]
-    if (!file) return
+  const file = e.target.files[0]
+  if (!file) return
 
-    const formData = new FormData()
-    formData.append('csv', file)
+  const formData = new FormData()
+  formData.append('csv', file)
 
-    router.post('/albums/import', formData, {
-      onSuccess: () => {
+  // Reset messages
+  successMessage.value = ''
+  errorMessage.value = ''
+
+  axios.post('/albums/import', formData)
+    .then(({ data }) => {
+      if (data.success) {
+        showMessage('success', data.message)
         refreshList()
-      },
-      onError: () => {
-        alert('Import failed. Please check your file.')
+      } else {
+        showMessage('error', data.message)
       }
     })
+    .catch(err => {
+      showMessage('error', err.response?.data?.message || 'Import failed.')
+    })
+}
+
+function showMessage(type, message) {
+  if (type === 'success') {
+    successMessage.value = message
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 15000)
+  } else if (type === 'error') {
+    errorMessage.value = message
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 10000)
   }
+}
+
+function refreshList() {
+  router.reload({ only: ['albums'] });
+}
+  
 
   watch(() => usePage().props.value.albums, (newVal) => {
     albums.value = newVal
   })
+
+
+  // Watch for changes in flash.success
+watch(
+  () => page.props.value.flash?.success,
+  (val) => {
+    globalSuccess.value = val || ''
+    if (val) {
+      setTimeout(() => {
+        globalSuccess.value = ''
+      }, 5000) // hide after 5s
+    }
+  }
+)
+
+
+// Watch for changes in flash.error
+watch(
+  () => page.props.value.flash?.error,
+  (val) => {
+    globalError.value = val || ''
+    if (val) {
+      setTimeout(() => {
+        globalError.value = ''
+      }, 8000) // hide after 8s
+    }
+  }
+)
+
+ 
+
 </script>
 
 

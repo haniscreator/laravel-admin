@@ -98,19 +98,6 @@ class AlbumService
         ];
     }
 
-    // public function storeImage(int $parentId, UploadedFile $image, int $user_id, string $type = 'album')
-    // {
-    //     $filename = time() . '.' . $image->getClientOriginalExtension();
-    //     $path = $image->storeAs('images/upload', $filename, 'public');
-
-    //     return Image::create([
-    //         'parent_id' => $parentId,
-    //         'path' => $path,
-    //         'type' => $type,
-    //         'created_by' => $user_id,
-    //     ]);
-    // }
-
     public function storeImage(int $parentId, UploadedFile $image, int $user_id, string $type = 'album')
     {
         // Delete existing images for this parent/type
@@ -172,4 +159,177 @@ class AlbumService
             ->where('type', $type)
             ->delete();
     }
+
+    /*
+    public function importCsv(UploadedFile $file, int $userId): int
+    {
+        $importedCount = 0;
+
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            $header = fgetcsv($handle);
+            $header = array_map('trim', $header);
+
+            $expected = ['name', 'description', 'keyword', 'location', 'status'];
+
+            if ($header !== $expected) {
+                fclose($handle);
+                throw new \Exception('Invalid CSV header. Expected: ' . implode(', ', $expected));
+            }
+
+            while (($row = fgetcsv($handle)) !== false) {
+                if (count($row) < count($expected)) {
+                    continue;
+                }
+
+                $data = array_combine($expected, $row);
+
+                Album::create([
+                    'name'         => $data['name'],
+                    'description'  => $data['description'],
+                    'keyword'      => $data['keyword'],
+                    'location'     => $data['location'],
+                    'status'       => $data['status'],
+                    'created_date' => now(),
+                    'created_by'   => $userId,
+                ]);
+
+                $importedCount++;
+            }
+
+            fclose($handle);
+        }
+
+        return $importedCount;
+    }
+        */
+
+    /*
+    public function importCsv(UploadedFile $file, int $userId): int
+{
+    $importedCount = 0;
+
+    // Open CSV file safely
+    if (($handle = fopen($file->getRealPath(), 'r')) === false) {
+        throw new \Exception('Unable to open the uploaded CSV file.');
+    }
+
+    // Read and clean header row
+    $header = fgetcsv($handle);
+    if (!$header) {
+        fclose($handle);
+        throw new \Exception('CSV file is empty or unreadable.');
+    }
+    $header = array_map('trim', $header);
+
+    // Expected column names
+    $expected = ['name', 'description', 'keyword', 'location', 'status'];
+
+    // Validate header strictly
+    if ($header !== $expected) {
+        fclose($handle);
+        throw new \Exception('Invalid CSV header. Expected: ' . implode(', ', $expected));
+    }
+
+    // Process each row
+    while (($row = fgetcsv($handle)) !== false) {
+        // Skip incomplete rows
+        if (count($row) < count($expected)) {
+            continue;
+        }
+
+        $data = array_combine($expected, array_map('trim', $row));
+
+        // Optional: extra per-row validation
+        if (empty($data['name']) || empty($data['status'])) {
+            continue; // Skip rows with missing required fields
+        }
+
+        Album::create([
+            'name'         => $data['name'],
+            'description'  => $data['description'],
+            'keyword'      => $data['keyword'],
+            'location'     => $data['location'],
+            'status'       => $data['status'],
+            'created_date' => now(),
+            'created_by'   => $userId,
+        ]);
+
+        $importedCount++;
+    }
+
+    fclose($handle);
+
+    // No rows imported → still count as valid but let user know
+    if ($importedCount === 0) {
+        throw new \Exception('No valid albums found in the CSV file.');
+    }
+
+    return $importedCount;
+}
+    */
+
+
+public function importCsv(UploadedFile $file, int $userId): int
+{
+    $importedCount = 0;
+
+    // Open CSV file
+    if (($handle = fopen($file->getRealPath(), 'r')) === false) {
+        throw new \Exception('Unable to open the uploaded CSV file.');
+    }
+
+    // Read header row
+    $header = fgetcsv($handle);
+    if (!$header) {
+        fclose($handle);
+        throw new \Exception('CSV file is empty or unreadable.');
+    }
+    $header = array_map('trim', $header);
+
+    // Expected columns
+    $expected = ['name', 'description', 'keyword', 'location', 'status'];
+
+    // Strict header check
+    if ($header !== $expected) {
+        fclose($handle);
+        throw new \Exception('Your CSV header is incorrect. Expected columns: ' . implode(', ', $expected));
+    }
+
+    // Read each row
+    while (($row = fgetcsv($handle)) !== false) {
+        // Skip if not enough columns
+        if (count($row) < count($expected)) {
+            continue;
+        }
+
+        $data = array_combine($expected, array_map('trim', $row));
+
+        // Basic per-row validation
+        if (!isset($data['name']) || $data['name'] === '' || !isset($data['status']) || $data['status'] === '') {
+            continue; // Skip rows with truly missing required fields
+        }
+
+        Album::create([
+            'name'         => $data['name'],
+            'description'  => $data['description'],
+            'keyword'      => $data['keyword'],
+            'location'     => $data['location'],
+            'status'       => $data['status'],
+            'created_date' => now(),
+            'created_by'   => $userId,
+        ]);
+
+        $importedCount++;
+    }
+
+    fclose($handle);
+
+    if ($importedCount === 0) {
+        throw new \Exception('No valid albums were found in your CSV file.');
+    }
+
+    return $importedCount;
+}
+
+
 }

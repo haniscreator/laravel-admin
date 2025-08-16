@@ -13,6 +13,7 @@ use App\Actions\Album\ToggleAlbumStatusAction;
 use App\Http\Requests\StoreAlbumRequest;
 use App\Http\Requests\UpdateAlbumRequest;
 use App\Models\Album;
+use App\Actions\Album\AlbumImportAction;
 use App\Actions\Album\ImportAlbumsFromCsv;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -67,9 +68,52 @@ class AlbumController extends Controller
         // Because your UI expects an Inertia response sometimes, returning back is safe:
         return redirect()->back()->with('success', 'Status updated.');
     }
+    
+public function import(Request $request, AlbumImportAction $action)
+{
+    try {
+        $count = $action->handle($request);
 
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} albums imported successfully.",
+            'count'   => $count,
+        ], 200);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage() ?: 'Import failed.',
+        ], 422);
+    }
+}
+
+
+
+
+    /*
+   public function import(Request $request, AlbumImportAction $action)
+    {
+        try {
+            $result = $action->handle($request);
+
+            if ($result['success']) {
+                return redirect()->back()
+                    ->with('success', "{$result['count']} albums imported successfully.");
+            } else {
+                return redirect()->back()
+                    ->with('error', 'Import failed.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
+    }
+        */
+
+    /*
     public function import(Request $request)
     {
+        
         $validator = Validator::make($request->all(), [
             'csv' => 'required|file|mimes:csv,txt|max:2048',
         ]);
@@ -115,6 +159,6 @@ class AlbumController extends Controller
         }
 
         return back()->with('success', "{$importedCount} albums imported successfully.");
-    }
+    }*/
 
 }
