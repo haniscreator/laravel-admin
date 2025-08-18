@@ -8,9 +8,11 @@ use App\Services\FileStorageService;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 class AlbumServiceTest extends TestCase
 {
+    
     protected function tearDown(): void
     {
         Mockery::close();
@@ -233,6 +235,62 @@ class AlbumServiceTest extends TestCase
 
         // Assert paginator was returned
         $this->assertSame($mockPaginator, $result);
+    }
+
+
+    /** @test */
+    public function it_fails_on_invalid_header()
+    {
+        // Mock the Album model
+        $mockAlbum = Mockery::mock(\App\Models\Album::class);
+        // Create service
+        $service = new \App\Services\AlbumService($mockAlbum);
+
+        
+        $file = UploadedFile::fake()->createWithContent('albums.csv', "wrong,header,here\n");
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Your CSV header is incorrect');
+        $service->importCsv($file, 1);
+    }
+
+
+    /** @test */
+    public function it_imports_valid_csv_with_mock()
+    {
+        // Mock the Album model
+        $mockAlbum = Mockery::mock(\App\Models\Album::class);
+        $mockAlbum->shouldReceive('create')->twice()->andReturnTrue();
+
+        $service = new \App\Services\AlbumService($mockAlbum);
+
+        $csv = "name,description,keyword,location,status\n"
+            . "Album 1,Desc1,tag1 tag2,Location1,1\n"
+            . "Album 2,Desc2,tag2 tag3,Location2,0\n";
+
+        $file = UploadedFile::fake()->createWithContent('albums.csv', $csv);
+
+        $count = $service->importCsv($file, 1);
+
+        $this->assertEquals(2, $count);
+    }
+
+    /** @test */
+    public function it_skips_rows_with_missing_required_fields()
+    {
+        // Mock the Album model
+        $mockAlbum = Mockery::mock(\App\Models\Album::class);
+        // Create service
+        $service = new \App\Services\AlbumService($mockAlbum);
+        
+        $csv = "name,description,keyword,location,status\n"
+             . ",Desc1,tag1,Location1,1\n"; // missing name
+
+        $file = UploadedFile::fake()->createWithContent('albums.csv', $csv);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No valid albums were found in your CSV file.');
+
+        $service->importCsv($file, 1);
     }
 
 
