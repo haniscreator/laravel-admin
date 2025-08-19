@@ -2,106 +2,138 @@
 
 namespace App\Services;
 
-use App\Models\Album;
 use App\Models\Image;
+use App\Models\Item;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-class AlbumService
+class ItemService
 {
-    protected $album;
+    protected $item;
 
-    public function __construct(Album $album)
+    public function __construct(Item $item)
     {
-        $this->album = $album;
+        $this->item = $item;
     }
 
     /**
-     * Search/sort/paginate album query.
+     * Search/sort/paginate item query.
      */
     public function getList($request, $perPage = 10)
     {
-        $query = $this->album->withCount('items');
+        $query = $this->item->with('album');
+
+        if ($request->filled('album_id')) {
+            $query->where('album_id', $request->album_id);
+        }
 
         if ($request->filled('keyword')) {
             $kw = $request->keyword;
             $query->where(function ($q) use ($kw) {
                 $q->where('name', 'like', '%'.$kw.'%')
                     ->orWhere('description', 'like', '%'.$kw.'%')
-                    ->orWhere('location', 'like', '%'.$kw.'%')
                     ->orWhere('keyword', 'like', '%'.$kw.'%');
             });
         }
 
         if ($request->filled('status') && $request->status !== '') {
-            // allow '0' or '1' - treat empty as all
             $query->where('status', $request->status);
         }
 
-        $sort = $request->input('sort', 'id');
-        $direction = $request->input('direction', 'desc');
+        // Default sort field and direction
+        $allowedSortFields = ['id', 'name', 'description'];
+        $sortField = $request->get('sort', 'id');        // default id
+        $sortDirection = $request->get('direction', 'desc'); // default desc
 
-        if (in_array($sort, ['id', 'name', 'description', 'location']) && in_array($direction, ['asc', 'desc'])) {
-            $query->orderBy($sort, $direction);
+        if (! in_array($sortField, $allowedSortFields)) {
+            $sortField = 'id';
         }
 
+        if (! in_array(strtolower($sortDirection), ['asc', 'desc'])) {
+            $sortDirection = 'desc';
+        }
+
+        $query->orderBy($sortField, $sortDirection);
+
         return $query->paginate($perPage)
-            ->appends($request->only('keyword', 'sort', 'direction', 'status'));
+            ->through(fn ($item) => [
+                'id' => $item->id,
+                'name' => $item->name,
+                'description' => $item->description,
+                'keyword' => $item->keyword,
+                'status' => $item->status,
+                'album_name' => optional($item->album)->name,
+            ])
+            ->appends($request->only('keyword', 'album_id', 'status', 'sort', 'direction'));
     }
 
     /**
-     * Create album and optional image.
+     * Create item with optional image.
      */
-    public function createAlbum(array $data): Album
+    public function store(array $data, ?UploadedFile $mediaFile = null): Item
     {
+        $data = $this->prepareItemData($data);
 
-        $data = $this->prepareAlbumData($data);
+        if ($mediaFile) {
+            $mediaPath = $mediaFile->storeAs(
+                'media',
+                time().'.'.$mediaFile->getClientOriginalExtension(),
+                'public'
+            );
+            $data['media_url'] = $mediaPath;
+        } else {
+            throw new \Exception('Media file is missing.');
+        }
 
-        return $this->album->create($data);
+        return $this->item->create($data);
     }
 
     /**
-     * Update album and optionally replace image.
+     * Update item and optionally replace image.
      */
-    public function updateAlbum(Album $album, array $data, ?UploadedFile $image = null)
+    public function update(Item $item, array $data, ?UploadedFile $image = null, ?int $userId = null)
     {
+        $data = $this->prepareItemData($data);
+        $item->update($data);
 
-        $data = $this->prepareAlbumData($data);
+        if ($image) {
+            $this->storeImage($item->id, $image, $userId);
+        }
 
-        return $album->update($data);
-
+        return $item;
     }
 
-    public function deleteAlbum(Album $album)
+    public function delete(Item $item)
     {
-        // Delete all album images (files + DB records)
-        $this->deleteAlbumImages($album);
-
-        // Delete album itself
-        $album->delete();
+        $this->deleteItemImages($item);
+        $item->delete();
     }
 
-    public function toggleStatus(Album $album)
+    public function toggleStatus(Item $item): Item
     {
-        $album->status = ! $album->status;
-        $album->save();
+        $item->status = ! $item->status;
+        $item->save();
 
-        return $album;
+        return $item;
     }
 
-    public function getAlbumForEdit(Album $album)
+    public function getItemForEdit(Item $item): array
     {
-        $image = Image::where('parent_id', $album->id)->where('type', 'album')->first();
+        $image = Image::where('parent_id', $item->id)->where('type', 'item')->first();
 
         return [
-            'album' => $album,
+            'item' => $item,
             'image' => $image,
+
         ];
     }
 
-    public function storeImage(int $parentId, UploadedFile $image, int $user_id, string $type = 'album')
+    /**
+     * Store / replace image for item.
+     */
+    public function storeImage(int $parentId, UploadedFile $image, ?int $userId, string $type = 'item')
     {
-        // Delete existing images for this parent/type
+        // Delete existing
         $existing = Image::where('parent_id', $parentId)
             ->where('type', $type)
             ->get();
@@ -113,39 +145,21 @@ class AlbumService
             $row->delete();
         }
 
-        // Store new image file
+        // Store new
         $filename = time().'.'.$image->getClientOriginalExtension();
         $path = $image->storeAs('images/upload', $filename, 'public');
 
-        // Create new Image record
         return Image::create([
             'parent_id' => $parentId,
             'path' => $path,
             'type' => $type,
-            'created_by' => $user_id,
+            'created_by' => $userId,
         ]);
     }
 
-    protected function normalizeKeywords(string $raw): string
+    public function deleteItemImages(Item $item, string $type = 'item')
     {
-        $parts = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
-        $tags = array_unique(array_map('trim', $parts));
-
-        return implode(', ', $tags);
-    }
-
-    protected function prepareAlbumData(array $data): array
-    {
-        if (! empty($data['keyword'])) {
-            $data['keyword'] = $this->normalizeKeywords($data['keyword']);
-        }
-
-        return $data;
-    }
-
-    public function deleteAlbumImages(Album $album, string $type = 'album')
-    {
-        $existing = Image::where('parent_id', $album->id)
+        $existing = Image::where('parent_id', $item->id)
             ->where('type', $type)
             ->get();
 
@@ -155,12 +169,14 @@ class AlbumService
             }
         }
 
-        // Remove DB records for images
-        Image::where('parent_id', $album->id)
+        Image::where('parent_id', $item->id)
             ->where('type', $type)
             ->delete();
     }
 
+    /**
+     * CSV Import (similar to AlbumService).
+     */
     public function importCsv(UploadedFile $file, int $userId): int
     {
         $handle = $this->openCsvFile($file);
@@ -181,10 +197,9 @@ class AlbumService
                     continue;
                 }
 
-                // Apply normalization
-                $data = $this->prepareAlbumData($data);
+                $data = $this->prepareItemData($data);
 
-                Album::create([
+                Item::create([
                     'name' => $data['name'],
                     'description' => $data['description'],
                     'keyword' => $data['keyword'],
@@ -192,13 +207,14 @@ class AlbumService
                     'status' => $data['status'],
                     'created_date' => now(),
                     'created_by' => $userId,
+                    'album_id' => $data['album_id'] ?? null,
                 ]);
 
                 $importedCount++;
             }
 
             if ($importedCount === 0) {
-                throw new \Exception('No valid albums were found in your CSV file.');
+                throw new \Exception('No valid items were found in your CSV file.');
             }
 
             return $importedCount;
@@ -208,9 +224,24 @@ class AlbumService
         }
     }
 
-    /**
-     * Open the uploaded CSV file
-     */
+    /** ------------------ Helpers ------------------ */
+    protected function normalizeKeywords(string $raw): string
+    {
+        $parts = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+        $tags = array_unique(array_map('trim', $parts));
+
+        return implode(', ', $tags);
+    }
+
+    protected function prepareItemData(array $data): array
+    {
+        if (! empty($data['keyword'])) {
+            $data['keyword'] = $this->normalizeKeywords($data['keyword']);
+        }
+
+        return $data;
+    }
+
     protected function openCsvFile(UploadedFile $file)
     {
         $handle = fopen($file->getRealPath(), 'r');
@@ -221,9 +252,6 @@ class AlbumService
         return $handle;
     }
 
-    /**
-     * Validate header row
-     */
     protected function validateHeader($handle): array
     {
         $header = fgetcsv($handle);
@@ -232,7 +260,7 @@ class AlbumService
         }
 
         $header = array_map('trim', $header);
-        $expected = ['name', 'description', 'keyword', 'location', 'status'];
+        $expected = ['name', 'description', 'keyword', 'location', 'status', 'album_id'];
 
         if ($header !== $expected) {
             throw new \Exception(
@@ -243,39 +271,20 @@ class AlbumService
         return $header;
     }
 
-    /**
-     * Ensure row has correct number of columns
-     */
     protected function isValidRow(array $row, array $header): bool
     {
         return count($row) >= count($header);
     }
 
-    /**
-     * Map CSV row to associative array
-     */
     protected function mapRowToData(array $row, array $header): array
     {
         return array_combine($header, array_map('trim', $row));
     }
 
-    /**
-     * Validate required fields in row data
-     */
     protected function validateRowData(array $data): bool
     {
         return isset($data['name'], $data['status']) &&
             $data['name'] !== '' &&
             $data['status'] !== '';
-    }
-
-    /**
-     * Get active albums for dropdowns
-     */
-    public function getActiveForDropdown()
-    {
-        return $this->album->where('status', 1)
-            ->select('id', 'name')
-            ->get();
     }
 }
