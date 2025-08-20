@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Actions\Album;
 
 use App\Services\AlbumService;
@@ -16,12 +17,13 @@ class StoreAlbumAction
     public function handle(Request $request)
     {
         $data = $request->validated();
+        $data['created_by'] = auth()->id();
         $image = $request->file('image');
 
         $album = $this->service->createAlbum($data);
 
         if ($image) {
-            $this->service->storeImage($album->id, $image,auth()->id(),'album', );
+            $this->service->storeImage($album->id, $image, auth()->id(), 'album');
         }
 
         return $album;

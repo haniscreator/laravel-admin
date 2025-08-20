@@ -293,7 +293,7 @@
 
 <script setup>
 import axios from "axios";
-import { ref, watch, computed, reactive } from "vue";
+import { ref, watch, computed, reactive, watchEffect } from "vue";
 import { Inertia } from "@inertiajs/inertia";
 import { usePage } from "@inertiajs/inertia-vue3";
 import { router } from "@inertiajs/vue3";
@@ -463,31 +463,25 @@ watch(
     }
 );
 
-// Watch for changes in flash.success
-watch(
-    () => page.props.value.flash?.success,
-    (val) => {
-        globalSuccess.value = val || "";
-        if (val) {
-            setTimeout(() => {
-                globalSuccess.value = "";
-            }, 5000); // hide after 5s
-        }
-    }
-);
+watchEffect(() => {
+    if (page.props.value.flash?.success) {
+        globalSuccess.value = page.props.value.flash.success;
 
-// Watch for changes in flash.error
-watch(
-    () => page.props.value.flash?.error,
-    (val) => {
-        globalError.value = val || "";
-        if (val) {
-            setTimeout(() => {
-                globalError.value = "";
-            }, 8000); // hide after 8s
-        }
+        setTimeout(() => {
+            globalSuccess.value = "";
+        }, 5000);
     }
-);
+});
+
+watchEffect(() => {
+    if (page.props.value.flash?.error) {
+        globalError.value = page.props.value.flash.error;
+
+        setTimeout(() => {
+            globalError.value = "";
+        }, 8000);
+    }
+});
 </script>
 
 <script>

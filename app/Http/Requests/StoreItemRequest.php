@@ -19,7 +19,7 @@ class StoreItemRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'keyword' => 'required|string',
-            'media_url' => 'nullable|file|mimes:mp3,wav,ogg',
+            'media_url' => 'required|file|mimes:mp3,wav,ogg|max:10240',
             'status' => 'required|boolean',
         ];
     }

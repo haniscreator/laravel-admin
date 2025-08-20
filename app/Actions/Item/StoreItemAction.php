@@ -17,7 +17,7 @@ class StoreItemAction
     public function handle(Request $request)
     {
         $data = $request->validated();
-
+        $data['created_by'] = auth()->id();
         $image = $request->file('media_url');
         $userId = $request->user()->id ?? null;
 
