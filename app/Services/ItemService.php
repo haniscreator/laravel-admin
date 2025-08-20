@@ -41,7 +41,7 @@ class ItemService
         }
 
         // Default sort field and direction
-        $allowedSortFields = ['id', 'name', 'description'];
+        $allowedSortFields = ['id', 'name', 'description', 'updated_at'];
         $sortField = $request->get('sort', 'id');        // default id
         $sortDirection = $request->get('direction', 'desc'); // default desc
 
@@ -91,13 +91,13 @@ class ItemService
     /**
      * Update item and optionally replace image.
      */
-    public function update(Item $item, array $data, ?UploadedFile $image = null, ?int $userId = null)
+    public function update(Item $item, array $data, ?UploadedFile $image = null, ?int $userId = null): Item
     {
         $data = $this->prepareItemData($data);
         $item->update($data);
 
         if ($image) {
-            $this->storeImage($item->id, $image, $userId);
+            $this->updateMediaFile($item, $image);
         }
 
         return $item;
@@ -105,7 +105,7 @@ class ItemService
 
     public function delete(Item $item)
     {
-        $this->deleteItemImages($item);
+        $this->deleteMediaFile($item);
         $item->delete();
     }
 
@@ -129,50 +129,79 @@ class ItemService
     }
 
     /**
-     * Store / replace image for item.
+     * Delete media file for given item
      */
-    public function storeImage(int $parentId, UploadedFile $image, ?int $userId, string $type = 'item')
+    public function deleteMediaFile(Item $item): void
     {
-        // Delete existing
-        $existing = Image::where('parent_id', $parentId)
-            ->where('type', $type)
-            ->get();
+        if ($item->media_url && Storage::disk('public')->exists($item->media_url)) {
+            Storage::disk('public')->delete($item->media_url);
+        }
+    }
 
-        foreach ($existing as $row) {
-            if (Storage::disk('public')->exists($row->path)) {
-                Storage::disk('public')->delete($row->path);
-            }
-            $row->delete();
+    /**
+     * Delete old media file and upload new one.
+     */
+    private function updateMediaFile(Item $item, UploadedFile $image): void
+    {
+        // Delete the old media file if it exists
+        if ($item->media_url && Storage::disk('public')->exists($item->media_url)) {
+            Storage::disk('public')->delete($item->media_url);
         }
 
-        // Store new
+        // Upload new file
         $filename = time().'.'.$image->getClientOriginalExtension();
-        $path = $image->storeAs('images/upload', $filename, 'public');
-
-        return Image::create([
-            'parent_id' => $parentId,
-            'path' => $path,
-            'type' => $type,
-            'created_by' => $userId,
+        $path = $image->storeAs('media', $filename, 'public');
+        // Save new path
+        $item->update([
+            'media_url' => $path,
         ]);
     }
 
-    public function deleteItemImages(Item $item, string $type = 'item')
-    {
-        $existing = Image::where('parent_id', $item->id)
-            ->where('type', $type)
-            ->get();
+    /**
+     * Store / replace image for item.
+     */
+    // public function storeImage(int $parentId, UploadedFile $image, ?int $userId, string $type = 'item')
+    // {
+    //     // Delete existing
+    //     $existing = Image::where('parent_id', $parentId)
+    //         ->where('type', $type)
+    //         ->get();
 
-        foreach ($existing as $row) {
-            if (Storage::disk('public')->exists($row->path)) {
-                Storage::disk('public')->delete($row->path);
-            }
-        }
+    //     foreach ($existing as $row) {
+    //         if (Storage::disk('public')->exists($row->path)) {
+    //             Storage::disk('public')->delete($row->path);
+    //         }
+    //         $row->delete();
+    //     }
 
-        Image::where('parent_id', $item->id)
-            ->where('type', $type)
-            ->delete();
-    }
+    //     // Store new
+    //     $filename = time().'.'.$image->getClientOriginalExtension();
+    //     $path = $image->storeAs('images/upload', $filename, 'public');
+
+    //     return Image::create([
+    //         'parent_id' => $parentId,
+    //         'path' => $path,
+    //         'type' => $type,
+    //         'created_by' => $userId,
+    //     ]);
+    // }
+
+    // public function deleteItemImages(Item $item, string $type = 'item')
+    // {
+    //     $existing = Image::where('parent_id', $item->id)
+    //         ->where('type', $type)
+    //         ->get();
+
+    //     foreach ($existing as $row) {
+    //         if (Storage::disk('public')->exists($row->path)) {
+    //             Storage::disk('public')->delete($row->path);
+    //         }
+    //     }
+
+    //     Image::where('parent_id', $item->id)
+    //         ->where('type', $type)
+    //         ->delete();
+    // }
 
     /**
      * CSV Import (similar to AlbumService).

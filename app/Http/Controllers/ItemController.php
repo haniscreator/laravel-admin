@@ -71,7 +71,11 @@ class ItemController extends Controller
     {
         $action->handle($request, $item);
 
-        return redirect()->route('items.index')->with('success', 'Item updated successfully.');
+        return redirect()->route('items.index', [
+            'sort' => 'updated_at',
+            'direction' => 'desc',
+            'page' => 1,
+        ])->with('success', 'Item updated successfully.');
     }
 
     public function destroy(Item $item, DeleteItemAction $action)

@@ -19,7 +19,7 @@ class UpdateItemAction
     {
         $data = $request->validated();
 
-        $image = $request->file('image');
+        $image = $request->file('media_url');
         $userId = $request->user()->id ?? null;
 
         return $this->service->update($item, $data, $image, $userId);

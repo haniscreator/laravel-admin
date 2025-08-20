@@ -1,11 +1,15 @@
 <?php
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAlbumRequest extends FormRequest
 {
-    public function authorize() { return true; }
+    public function authorize()
+    {
+        return true;
+    }
 
     public function rules()
     {
@@ -15,7 +19,7 @@ class StoreAlbumRequest extends FormRequest
             'location' => 'required|string',
             'keyword' => 'nullable|string',
             'status' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 }

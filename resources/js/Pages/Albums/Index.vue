@@ -301,14 +301,11 @@ import { router } from "@inertiajs/vue3";
 const successMessage = ref("");
 const errorMessage = ref("");
 
-//const filters = ref(props.filters || { keyword: '' })
-
 const page = usePage();
 const albums = computed(() => usePage().props.value.albums);
 const props = usePage().props.value;
 
 // Fallback to {} if flash is undefined
-//const flash = page.props.flash || {}
 const flash = page.props.value.flash || {};
 
 // Local reactive variables for global Laravel flash messages

@@ -1,16 +1,53 @@
 <template>
     <div>
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold dark:text-gray-200">Items</h1>
+        <div class="mb-4 space-y-4">
+            <!-- Row 1: Title (left) + Flash (center) -->
+            <div class="grid grid-cols-3 items-center">
+                <!-- Left -->
+                <div>
+                    <h1 class="text-2xl font-bold dark:text-gray-200">Items</h1>
+                </div>
 
-            <div
-                v-if="$page.props.flash.success"
-                class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 p-3 rounded mb-4"
-            >
-                {{ $page.props.flash.success }}
+                <!-- Center -->
+                <div
+                    class="flex flex-col sm:flex-row sm:justify-center items-center gap-2 w-full"
+                >
+                    <!-- Laravel Flash Messages -->
+                    <div
+                        v-if="globalSuccess"
+                        class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded text-center"
+                    >
+                        {{ globalSuccess }}
+                    </div>
+
+                    <div
+                        v-if="globalError"
+                        class="bg-red-100 text-red-800 px-4 py-2 rounded text-center"
+                    >
+                        {{ globalError }}
+                    </div>
+
+                    <!-- CSV Import Messages -->
+                    <div
+                        v-if="successMessage"
+                        class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-4 py-2 rounded text-center"
+                    >
+                        {{ successMessage }}
+                    </div>
+
+                    <div
+                        v-if="errorMessage"
+                        class="bg-red-100 text-red-800 px-4 py-2 rounded text-center"
+                    >
+                        {{ errorMessage }}
+                    </div>
+                </div>
+                <!-- Right (empty for now) -->
+                <div></div>
             </div>
 
-            <div class="flex items-center space-x-2">
+            <!-- Row 2: Filters + Actions (Right aligned) -->
+            <div class="flex flex-wrap justify-end items-center space-x-2">
                 <input
                     v-model="filters.keyword"
                     @input="search"
@@ -39,7 +76,7 @@
                 <select
                     v-model="filters.status"
                     @change="search"
-                    class="appearance-none border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 pr-8 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    class="border px-3 py-2 pr-8 rounded max-w-xs"
                 >
                     <option value="">All</option>
                     <option value="1">Active</option>
@@ -48,14 +85,14 @@
 
                 <button
                     @click="resetSearch"
-                    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+                    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900"
                 >
                     Reset
                 </button>
 
                 <button
                     @click="goToCreateForm"
-                    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900 border-transparent"
+                    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900"
                 >
                     Add New
                 </button>
@@ -206,12 +243,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed, watch, watchEffect } from "vue";
 import { Inertia } from "@inertiajs/inertia";
 import { usePage } from "@inertiajs/inertia-vue3";
 
 const page = usePage();
 const items = computed(() => page.props.value.items);
+
+const successMessage = ref("");
+const errorMessage = ref("");
+// Fallback to {} if flash is undefined
+const flash = page.props.value.flash || {};
+// Local reactive variables for global Laravel flash messages
+const globalSuccess = ref(flash.success || "");
+const globalError = ref(flash.error || "");
 
 const props = defineProps({
     items: Object,
@@ -254,6 +299,7 @@ function search() {
 function resetSearch() {
     filters.value.keyword = "";
     filters.value.album_id = "";
+    filters.value.status = "";
     search();
 }
 
@@ -322,6 +368,27 @@ function toggleStatus(itemId) {
         }
     );
 }
+
+// Watch for changes in flash.success
+watchEffect(() => {
+    if (page.props.value.flash?.success) {
+        globalSuccess.value = page.props.value.flash.success;
+
+        setTimeout(() => {
+            globalSuccess.value = "";
+        }, 5000);
+    }
+});
+
+watchEffect(() => {
+    if (page.props.value.flash?.error) {
+        globalError.value = page.props.value.flash.error;
+
+        setTimeout(() => {
+            globalError.value = "";
+        }, 8000);
+    }
+});
 </script>
 
 <script>
