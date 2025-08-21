@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\AlbumController;
+use App\Http\Controllers\Api\ItemController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/albums', [AlbumController::class, 'index']);
+
+Route::get('/items', [ItemController::class, 'index']);
