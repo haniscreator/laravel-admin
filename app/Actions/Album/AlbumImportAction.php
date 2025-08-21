@@ -4,7 +4,7 @@ namespace App\Actions\Album;
 
 use App\Services\AlbumService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AlbumImportAction
 {
@@ -16,16 +16,18 @@ class AlbumImportAction
     }
 
     public function handle(Request $request): int
-{
-    $request->validate([
-        'csv' => 'required|file|mimes:csv,txt|max:2048',
-    ]);
+    {
 
-    $file   = $request->file('csv');
-    $userId = \Auth::id();
+        $request->validate([
+            'csv' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
 
-    // Service throws on bad header/empty CSV/etc.
-    return $this->service->importCsv($file, $userId);
-}
+        $file = $request->file('csv');
+        $userId = auth()->id();
 
+        Log::debug('inside AlbumImportAction');
+
+        // Service throws on bad header/empty CSV/etc.
+        return $this->service->importCsv($file, $userId);
+    }
 }

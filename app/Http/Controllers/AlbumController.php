@@ -26,6 +26,7 @@ class AlbumController extends Controller
 
     public function create()
     {
+
         return Inertia::render('Albums/Create');
     }
 
@@ -67,6 +68,7 @@ class AlbumController extends Controller
 
     public function import(Request $request, AlbumImportAction $action)
     {
+
         try {
             $count = $action->handle($request);
 

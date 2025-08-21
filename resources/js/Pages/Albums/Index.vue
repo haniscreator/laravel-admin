@@ -453,7 +453,7 @@ function showMessage(type, message) {
 }
 
 function refreshList() {
-    router.reload({ only: ["albums"] });
+    Inertia.get("/albums", {}, { preserveState: true, preserveScroll: true });
 }
 
 watch(

@@ -96,6 +96,21 @@
                 >
                     Add New
                 </button>
+
+                <!-- Import -->
+                <input
+                    type="file"
+                    ref="csvInput"
+                    @change="importCsv"
+                    accept=".csv"
+                    class="hidden"
+                />
+                <button
+                    @click="$refs.csvInput.click()"
+                    class="text-white px-4 py-2 rounded bg-gray-700 hover:bg-gray-900"
+                >
+                    Import
+                </button>
             </div>
         </div>
 
@@ -246,6 +261,7 @@
 import { ref, reactive, computed, watch, watchEffect } from "vue";
 import { Inertia } from "@inertiajs/inertia";
 import { usePage } from "@inertiajs/inertia-vue3";
+import { router } from "@inertiajs/vue3";
 
 const page = usePage();
 const items = computed(() => page.props.value.items);
@@ -369,7 +385,57 @@ function toggleStatus(itemId) {
     );
 }
 
-// Watch for changes in flash.success
+// functions for CSV import
+function importCsv(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("csv", file);
+
+    // Reset messages
+    successMessage.value = "";
+    errorMessage.value = "";
+
+    axios
+        .post("/items/import", formData)
+        .then(({ data }) => {
+            if (data.success) {
+                showMessage("success", data.message);
+                refreshList();
+            } else {
+                showMessage("error", data.message);
+            }
+        })
+        .catch((err) => {
+            showMessage(
+                "error",
+                err.response?.data?.message || "Import failed."
+            );
+        });
+}
+
+// functions for CSV import
+function showMessage(type, message) {
+    if (type === "success") {
+        successMessage.value = message;
+        setTimeout(() => {
+            successMessage.value = "";
+        }, 15000);
+    } else if (type === "error") {
+        errorMessage.value = message;
+        setTimeout(() => {
+            errorMessage.value = "";
+        }, 10000);
+    }
+}
+
+// functions for CSV import
+function refreshList() {
+    Inertia.get("/items", {}, { preserveState: true, preserveScroll: true });
+}
+
+// functions for laravel flash message
 watchEffect(() => {
     if (page.props.value.flash?.success) {
         globalSuccess.value = page.props.value.flash.success;
@@ -380,6 +446,7 @@ watchEffect(() => {
     }
 });
 
+// functions for laravel flash message
 watchEffect(() => {
     if (page.props.value.flash?.error) {
         globalError.value = page.props.value.flash.error;

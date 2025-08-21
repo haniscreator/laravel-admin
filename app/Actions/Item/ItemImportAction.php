@@ -4,6 +4,7 @@ namespace App\Actions\Item;
 
 use App\Services\ItemService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ItemImportAction
 {
@@ -16,9 +17,15 @@ class ItemImportAction
 
     public function handle(Request $request): int
     {
-        $file = $request->file('file');
-        $userId = $request->user()->id ?? null;
+        $request->validate([
+            'csv' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
 
+        $file = $request->file('csv');
+        $userId = auth()->id();
+
+        // Log::debug('Invalid row structure', ['file' => $file]);
+        // return 1;
         return $this->service->importCsv($file, $userId);
     }
 }

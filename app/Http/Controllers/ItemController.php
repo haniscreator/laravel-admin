@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Item\DeleteItemAction;
 use App\Actions\Item\GetItemForEditAction;
 use App\Actions\Item\IndexItemsAction;
+use App\Actions\Item\ItemImportAction;
 use App\Actions\Item\StoreItemAction;
 use App\Actions\Item\ToggleItemStatusAction;
 use App\Actions\Item\UpdateItemAction;
@@ -90,5 +91,23 @@ class ItemController extends Controller
         $action->handle($item);
 
         return redirect()->back()->with('success', 'Item status updated.');
+    }
+
+    public function import(Request $request, ItemImportAction $action)
+    {
+        try {
+            $count = $action->handle($request);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} items imported successfully.",
+                'count' => $count,
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Import failed@.',
+            ], 422);
+        }
     }
 }

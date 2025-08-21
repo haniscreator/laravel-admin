@@ -158,56 +158,11 @@ class ItemService
     }
 
     /**
-     * Store / replace image for item.
-     */
-    // public function storeImage(int $parentId, UploadedFile $image, ?int $userId, string $type = 'item')
-    // {
-    //     // Delete existing
-    //     $existing = Image::where('parent_id', $parentId)
-    //         ->where('type', $type)
-    //         ->get();
-
-    //     foreach ($existing as $row) {
-    //         if (Storage::disk('public')->exists($row->path)) {
-    //             Storage::disk('public')->delete($row->path);
-    //         }
-    //         $row->delete();
-    //     }
-
-    //     // Store new
-    //     $filename = time().'.'.$image->getClientOriginalExtension();
-    //     $path = $image->storeAs('images/upload', $filename, 'public');
-
-    //     return Image::create([
-    //         'parent_id' => $parentId,
-    //         'path' => $path,
-    //         'type' => $type,
-    //         'created_by' => $userId,
-    //     ]);
-    // }
-
-    // public function deleteItemImages(Item $item, string $type = 'item')
-    // {
-    //     $existing = Image::where('parent_id', $item->id)
-    //         ->where('type', $type)
-    //         ->get();
-
-    //     foreach ($existing as $row) {
-    //         if (Storage::disk('public')->exists($row->path)) {
-    //             Storage::disk('public')->delete($row->path);
-    //         }
-    //     }
-
-    //     Image::where('parent_id', $item->id)
-    //         ->where('type', $type)
-    //         ->delete();
-    // }
-
-    /**
      * CSV Import (similar to AlbumService).
      */
     public function importCsv(UploadedFile $file, int $userId): int
     {
+
         $handle = $this->openCsvFile($file);
 
         try {
@@ -229,14 +184,14 @@ class ItemService
                 $data = $this->prepareItemData($data);
 
                 Item::create([
+                    'album_id' => $data['album_id'] ?? null,
                     'name' => $data['name'],
                     'description' => $data['description'],
                     'keyword' => $data['keyword'],
-                    'location' => $data['location'],
+                    'media_url' => $data['media_url'],
                     'status' => $data['status'],
                     'created_date' => now(),
                     'created_by' => $userId,
-                    'album_id' => $data['album_id'] ?? null,
                 ]);
 
                 $importedCount++;
@@ -289,7 +244,7 @@ class ItemService
         }
 
         $header = array_map('trim', $header);
-        $expected = ['name', 'description', 'keyword', 'location', 'status', 'album_id'];
+        $expected = ['album_id', 'name', 'description', 'keyword', 'media_url', 'status'];
 
         if ($header !== $expected) {
             throw new \Exception(
