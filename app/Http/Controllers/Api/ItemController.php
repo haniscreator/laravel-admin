@@ -11,10 +11,16 @@ class ItemController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page', 10);
+        $perPage = $request->input('per_page', 10);
+        $albumId = $request->input('album_id');
 
-        // Eager load album to avoid N+1 problem
-        $items = Item::with('album')->paginate($perPage);
+        $query = Item::with('album');
+
+        if ($albumId) {
+            $query->where('album_id', $albumId);
+        }
+
+        $items = $query->paginate($perPage);
 
         return ItemResource::collection($items)
             ->response()
