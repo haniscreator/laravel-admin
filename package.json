@@ -25,7 +25,8 @@
         "@fortawesome/fontawesome-free": "^7.0.0",
         "@heroicons/vue": "^2.2.0",
         "@inertiajs/inertia-vue3": "^0.6.0",
-        "@vueuse/core": "^13.6.0"
+        "@vueuse/core": "^13.6.0",
+        "lucide-vue-next": "^0.540.0"
     },
     "lint-staged": {
         "*.php": [
