@@ -226,6 +226,7 @@
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button
+                                v-if="can('item.delete')"
                                 @click="deleteItem(item.id)"
                                 class="text-red-500 hover:text-red-700"
                                 title="Delete"
@@ -265,6 +266,9 @@ import { router } from "@inertiajs/vue3";
 
 const page = usePage();
 const items = computed(() => page.props.value.items);
+const permissions = computed(
+    () => page.props.value?.auth?.user.all_permissions || []
+);
 
 const successMessage = ref("");
 const errorMessage = ref("");
@@ -433,6 +437,11 @@ function showMessage(type, message) {
 // functions for CSV import
 function refreshList() {
     Inertia.get("/items", {}, { preserveState: true, preserveScroll: true });
+}
+
+// Permission Checking
+function can(permission) {
+    return permissions.value.includes(permission);
 }
 
 // functions for laravel flash message

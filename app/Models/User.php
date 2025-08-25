@@ -16,9 +16,9 @@ class User extends Authenticatable
     use HasApiTokens;
     use HasFactory;
     use HasProfilePhoto;
+    use HasRoles;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -59,5 +59,11 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
+        'all_permissions',
     ];
+
+    public function getAllPermissionsAttribute()
+    {
+        return $this->getAllPermissions()->pluck('name');
+    }
 }

@@ -258,7 +258,9 @@
                             >
                                 <i class="fas fa-edit"></i>
                             </button>
+
                             <button
+                                v-if="can('album.delete')"
                                 @click="deleteAlbum(album.id)"
                                 class="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                                 title="Delete"
@@ -296,7 +298,6 @@ import axios from "axios";
 import { ref, watch, computed, reactive, watchEffect } from "vue";
 import { Inertia } from "@inertiajs/inertia";
 import { usePage } from "@inertiajs/inertia-vue3";
-import { router } from "@inertiajs/vue3";
 
 const successMessage = ref("");
 const errorMessage = ref("");
@@ -304,6 +305,9 @@ const errorMessage = ref("");
 const page = usePage();
 const albums = computed(() => usePage().props.value.albums);
 const props = usePage().props.value;
+const permissions = computed(
+    () => page.props.value?.auth?.user.all_permissions || []
+);
 
 // Fallback to {} if flash is undefined
 const flash = page.props.value.flash || {};
@@ -454,6 +458,11 @@ function showMessage(type, message) {
 
 function refreshList() {
     Inertia.get("/albums", {}, { preserveState: true, preserveScroll: true });
+}
+
+// Permission Checking
+function can(permission) {
+    return permissions.value.includes(permission);
 }
 
 watch(
