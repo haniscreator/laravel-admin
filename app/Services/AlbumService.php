@@ -11,9 +11,12 @@ class AlbumService
 {
     protected $album;
 
-    public function __construct(Album $album)
+    protected $itemService;
+
+    public function __construct(Album $album, ItemService $itemService)
     {
         $this->album = $album;
+        $this->itemService = $itemService;
     }
 
     /**
@@ -74,11 +77,35 @@ class AlbumService
 
     public function deleteAlbum(Album $album)
     {
-        // Delete all album images (files + DB records)
+        // 1. Delete all album images
         $this->deleteAlbumImages($album);
 
-        // Delete album itself
+        // 2. Delete all items + their media files
+        foreach ($album->items as $item) {
+            $this->itemService->deleteMediaFile($item);
+            $item->delete();
+        }
+
+        // 3. Delete album itself
         $album->delete();
+    }
+
+    public function deleteAlbumImages(Album $album, string $type = 'album')
+    {
+        $existing = Image::where('parent_id', $album->id)
+            ->where('type', $type)
+            ->get();
+
+        foreach ($existing as $row) {
+            if (Storage::disk('public')->exists($row->path)) {
+                Storage::disk('public')->delete($row->path);
+            }
+        }
+
+        // Remove DB records for images
+        Image::where('parent_id', $album->id)
+            ->where('type', $type)
+            ->delete();
     }
 
     public function toggleStatus(Album $album)
@@ -141,24 +168,6 @@ class AlbumService
         }
 
         return $data;
-    }
-
-    public function deleteAlbumImages(Album $album, string $type = 'album')
-    {
-        $existing = Image::where('parent_id', $album->id)
-            ->where('type', $type)
-            ->get();
-
-        foreach ($existing as $row) {
-            if (Storage::disk('public')->exists($row->path)) {
-                Storage::disk('public')->delete($row->path);
-            }
-        }
-
-        // Remove DB records for images
-        Image::where('parent_id', $album->id)
-            ->where('type', $type)
-            ->delete();
     }
 
     public function importCsv(UploadedFile $file, int $userId): int
