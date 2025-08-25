@@ -391,7 +391,9 @@ function editAlbum(id) {
 }
 
 function deleteAlbum(id) {
-    if (confirm("Are you sure you want to delete this album?")) {
+    if (
+        confirm("Album ထဲမှာ Items များပါဖျတ်မှာ မလို့ ဖျတ်ဖို့သေချာပါ သလား?")
+    ) {
         Inertia.delete(`/albums/${id}`);
     }
 }
