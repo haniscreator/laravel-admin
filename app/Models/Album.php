@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Album extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
@@ -23,4 +24,9 @@ class Album extends Model
         return $this->hasMany(Item::class);
     }
 
+    public function coverImage()
+    {
+        return $this->hasOne(\App\Models\Image::class, 'parent_id')
+            ->where('type', 'album');
+    }
 }

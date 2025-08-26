@@ -23,6 +23,8 @@ class AlbumResource extends JsonResource
             'created_date' => $this->created_date,
             'created_by' => $this->created_by,
             'item_count' => $this->items()->count(),
+            'cover_image' => $this->coverImage ? $this->coverImage->path : null,
+
         ];
     }
 }

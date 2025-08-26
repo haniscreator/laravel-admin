@@ -14,7 +14,10 @@ class AlbumController extends Controller
         // Pagination: 10 per page by default, can be changed via query param
         $perPage = $request->query('per_page', 10);
 
-        $albums = Album::withCount('items')->paginate($perPage);
+        // $albums = Album::withCount('items')->paginate($perPage);
+        $albums = Album::withCount('items')
+            ->with('coverImage')
+            ->paginate($perPage);
 
         // Return paginated response using resource collection
         return AlbumResource::collection($albums)
