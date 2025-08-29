@@ -11,15 +11,40 @@ class AlbumController extends Controller
 {
     public function index(Request $request)
     {
-        // Pagination: 10 per page by default, can be changed via query param
-        $perPage = $request->query('per_page', 10);
+        $perPage = $request->input('per_page', 7);              // ✅ default 7
+        $orderBy = $request->input('order_by', 'created_at');   // ✅ default
+        $orderDir = $request->input('order_dir', 'desc');        // ✅ default
+        $searchTerm = $request->input('search_term');
 
-        // $albums = Album::withCount('items')->paginate($perPage);
-        $albums = Album::withCount('items')
+        $query = Album::withCount('items')
             ->with('coverImage')
-            ->paginate($perPage);
+            ->where('status', 1); // ✅ only active albums
 
-        // Return paginated response using resource collection
+        // Search filter
+        if (! empty($searchTerm)) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                    ->orWhere('description', 'like', "%{$searchTerm}%")
+                    ->orWhere('keyword', 'like', "%{$searchTerm}%")
+                    ->orWhere('location', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Whitelist ordering fields
+        $allowedOrderFields = ['id', 'name', 'created_at', 'status', 'created_by', 'location'];
+        if (! in_array($orderBy, $allowedOrderFields)) {
+            $orderBy = 'created_at';
+        }
+
+        $orderDir = strtolower($orderDir) === 'asc' ? 'asc' : 'desc';
+
+        $query->orderBy($orderBy, $orderDir);
+
+        // \Log::info($query->toSql());
+        // \Log::info($query->getBindings());
+
+        $albums = $query->paginate($perPage);
+
         return AlbumResource::collection($albums)
             ->response()
             ->setStatusCode(200);
