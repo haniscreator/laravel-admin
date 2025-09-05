@@ -19,7 +19,7 @@ class StoreAlbumRequest extends FormRequest
             'location' => 'required|string',
             'keyword' => 'nullable|string',
             'status' => 'boolean',
-            'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 }

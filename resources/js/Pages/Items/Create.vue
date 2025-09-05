@@ -9,7 +9,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Album</label
+                    >Album (*)</label
                 >
                 <select
                     v-model="form.album_id"
@@ -33,7 +33,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Name</label
+                    >Name (*)</label
                 >
                 <input
                     v-model="form.name"
@@ -49,7 +49,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Description</label
+                    >Description (*)</label
                 >
                 <textarea
                     v-model="form.description"
@@ -64,7 +64,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Keyword</label
+                    >Keyword (*)</label
                 >
                 <input
                     v-model="form.keyword"
@@ -95,7 +95,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200 mb-1"
-                    >Media File</label
+                    >Media File (*)</label
                 >
                 <div class="flex items-center gap-3">
                     <label

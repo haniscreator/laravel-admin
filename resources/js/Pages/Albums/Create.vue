@@ -8,7 +8,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Name</label
+                    >Name (*)</label
                 >
                 <input
                     v-model="form.name"
@@ -23,7 +23,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Description</label
+                    >Description (*)</label
                 >
                 <textarea
                     v-model="form.description"
@@ -37,7 +37,7 @@
             <div class="mb-4">
                 <label
                     class="block font-medium text-gray-800 dark:text-gray-200"
-                    >Location</label
+                    >Location (*)</label
                 >
                 <input
                     v-model="form.location"

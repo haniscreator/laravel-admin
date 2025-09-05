@@ -12,6 +12,7 @@
 /storage/logs/*
 /.env
 /.env.backup
+/.env.prod
 /.phpunit.result.cache
 
 # Laravel Mix / Vite
